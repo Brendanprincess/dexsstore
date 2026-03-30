@@ -1,6 +1,5 @@
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { TrendingUp, Check, ArrowRight } from "lucide-react";
+import { Check, ArrowRight } from "lucide-react";
 import MarketplaceHeader from "@/components/MarketplaceHeader";
 import MarketplaceFooter from "@/components/MarketplaceFooter";
 
@@ -24,56 +23,40 @@ const TrendingBarProduct = () => {
     <div className="min-h-screen bg-background">
       <MarketplaceHeader showBack />
 
-      <div className="container max-w-4xl mx-auto px-4 py-12">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="grid md:grid-cols-2 gap-10">
-            <div>
-              <div className="w-14 h-14 rounded-xl bg-gradient-primary flex items-center justify-center mb-5 animate-float">
-                <TrendingUp className="w-7 h-7 text-primary-foreground" />
-              </div>
-              <h1 className="font-display text-3xl font-bold text-foreground mb-3">
-                Trending Bar Ad
-              </h1>
-              <p className="text-muted-foreground leading-relaxed mb-6">
-                The most premium placement available. Your token gets featured in the trending bar,
-                visible to every single user on the platform. Perfect for high-impact launches.
-              </p>
+      <div className="container max-w-3xl mx-auto px-4 py-12">
+        <h1 className="text-2xl font-bold text-foreground mb-2">Trending Bar Advertising</h1>
+        <p className="text-sm text-muted-foreground leading-relaxed mb-8">
+          The most premium placement available. Your token gets featured in the trending bar,
+          visible to every single user on the platform.
+        </p>
 
-              <div className="space-y-3 mb-8">
-                {features.map((f) => (
-                  <div key={f} className="flex items-start gap-3">
-                    <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-                    <span className="text-sm text-foreground">{f}</span>
-                  </div>
-                ))}
-              </div>
+        <div className="space-y-3 mb-8">
+          {features.map((f) => (
+            <div key={f} className="flex items-start gap-3">
+              <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+              <span className="text-sm text-foreground">{f}</span>
             </div>
+          ))}
+        </div>
 
-            <div>
-              <div className="space-y-4 sticky top-24">
-                <h2 className="font-display text-xl font-semibold text-foreground mb-4">Packages</h2>
-                {packages.map((pkg) => (
-                  <div key={pkg.name} className="rounded-xl border border-border bg-card p-5 shadow-card">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-display font-semibold text-foreground">{pkg.name}</span>
-                      <span className="font-display text-xl font-bold text-primary">{pkg.price}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {pkg.duration} • {pkg.reach}
-                    </p>
-                  </div>
-                ))}
-
-                <Link
-                  to="/product/trending-bar-ad/order"
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-gradient-primary text-primary-foreground font-display font-semibold hover:opacity-90 transition-opacity shadow-glow mt-4"
-                >
-                  Order Now <ArrowRight className="w-4 h-4" />
-                </Link>
+        <div className="space-y-3 mb-6">
+          {packages.map((pkg) => (
+            <div key={pkg.name} className="rounded-xl border border-border bg-card p-4 flex items-center justify-between">
+              <div>
+                <span className="font-semibold text-foreground text-sm">{pkg.name}</span>
+                <p className="text-xs text-muted-foreground">{pkg.duration} • {pkg.reach}</p>
               </div>
+              <span className="font-bold text-foreground">{pkg.price}</span>
             </div>
-          </div>
-        </motion.div>
+          ))}
+        </div>
+
+        <Link
+          to="/product/trending-bar-ad/order"
+          className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity"
+        >
+          Order Now <ArrowRight className="w-4 h-4" />
+        </Link>
       </div>
 
       <MarketplaceFooter />
