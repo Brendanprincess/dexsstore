@@ -153,7 +153,7 @@ const TokenInfoOrder = () => {
                 </div>
               )}
               {tokenStatus === "available" && (
-                <div className="flex items-center gap-2 mt-2 text-sm" style={{ color: 'hsl(142, 70%, 45%)' }}>
+                <div className="flex items-center gap-2 mt-2 text-sm text-primary">
                   <CheckCircle className="w-4 h-4" /> Enhanced Token Info can be purchased for this token!
                 </div>
               )}
