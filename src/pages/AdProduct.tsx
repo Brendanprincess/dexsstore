@@ -1,58 +1,88 @@
 import { Link } from "react-router-dom";
-import { Check } from "lucide-react";
 import MarketplaceHeader from "@/components/MarketplaceHeader";
 import MarketplaceFooter from "@/components/MarketplaceFooter";
-
-const features = [
-  "Banner ads displayed across token listing pages",
-  "Targeted placement by chain and token category",
-  "Real-time impression and click analytics",
-  "Custom creative — upload your own banner design",
-  "Flexible duration: 1 day, 7 days, or 30 days",
-  "Millions of daily active users as potential audience",
-];
-
-const packages = [
-  { name: "Starter", price: "$500", duration: "1 day", impressions: "~50K" },
-  { name: "Growth", price: "$2,500", duration: "7 days", impressions: "~350K" },
-  { name: "Premium", price: "$8,000", duration: "30 days", impressions: "~1.5M" },
-];
 
 const AdProduct = () => {
   return (
     <div className="min-h-screen bg-page-gradient">
-      <MarketplaceHeader showBack />
+      <MarketplaceHeader />
 
-      <div className="max-w-3xl mx-auto px-6 py-12">
-        <h1 className="text-2xl font-bold text-foreground mb-2">Token Advertising</h1>
-        <p className="text-sm text-muted-foreground leading-relaxed mb-8">
-          Boost your token's visibility with banner ads placed strategically across the platform.
-        </p>
+      <div className="bg-hero-glow">
+        <div className="max-w-5xl mx-auto px-6 pt-10 pb-8 text-center">
+          {/* Breadcrumb */}
+          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-6">
+            <Link to="/" className="hover:text-foreground transition-colors flex items-center gap-1">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              Home
+            </Link>
+            <span>/</span>
+            <span className="text-foreground">Token Advertising</span>
+          </div>
 
-        <div className="space-y-3 mb-8">
-          {features.map((f) => (
-            <div key={f} className="flex items-start gap-3">
-              <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-              <span className="text-sm text-foreground">{f}</span>
-            </div>
-          ))}
+          <h1 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight mb-4">
+            Token Advertising
+          </h1>
+
+          <p className="text-muted-foreground text-base md:text-lg max-w-xl mx-auto mb-8 leading-relaxed">
+            Advertise your token on DEX Screener and give it the exposure it deserves
+          </p>
+
+          <Link to="/product/ad/order" className="btn-learn-more px-8 py-3 text-base">
+            Order Now -&nbsp; from $299.00
+          </Link>
+
+          <div className="flex items-center justify-center gap-3 mt-5">
+            <span className="text-lg text-muted-foreground">◎</span>
+            <span className="text-lg text-muted-foreground">⟠</span>
+            <span className="text-lg text-muted-foreground">◆</span>
+            <span className="text-lg text-muted-foreground">₿</span>
+            <span className="text-lg text-muted-foreground">💳</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">Pay with crypto</p>
         </div>
 
-        <div className="space-y-3 mb-6">
-          {packages.map((pkg) => (
-            <div key={pkg.name} className="rounded-2xl border border-border bg-card p-4 flex items-center justify-between">
-              <div>
-                <span className="font-semibold text-foreground text-sm">{pkg.name}</span>
-                <p className="text-xs text-muted-foreground">{pkg.duration} • {pkg.impressions}</p>
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="border-t border-border" />
+        </div>
+
+        <div className="max-w-3xl mx-auto px-6 py-12 text-center">
+          <p className="text-lg text-muted-foreground leading-relaxed">
+            Put that marketing budget to good use and get your token in front of{" "}
+            <strong className="text-foreground">millions of people</strong>!
+          </p>
+        </div>
+
+        {/* Preview cards */}
+        <div className="max-w-4xl mx-auto px-6 pb-16">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="rounded-2xl border border-border bg-card/50 p-6">
+              <h3 className="text-sm font-semibold text-foreground mb-2">📊 Token Page Ad</h3>
+              <p className="text-xs text-muted-foreground mb-3">Your token's ad displayed prominently on listing pages with custom branding</p>
+              <div className="rounded-lg bg-secondary/50 p-4 text-center">
+                <div className="w-12 h-12 rounded-full bg-primary/20 mx-auto mb-2 flex items-center justify-center text-xl">₿</div>
+                <p className="text-sm font-semibold text-foreground">Your Token</p>
+                <p className="text-xs text-muted-foreground">Ad Campaign Preview</p>
               </div>
-              <span className="font-bold text-foreground">{pkg.price}</span>
             </div>
-          ))}
+            <div className="rounded-2xl border border-border bg-card/50 p-6">
+              <h3 className="text-sm font-semibold text-foreground mb-2">🚀 Marketing Boost</h3>
+              <p className="text-xs text-muted-foreground mb-3">Get the marketing boost badge and increase your token's visibility</p>
+              <div className="rounded-lg bg-secondary/50 p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-sm">🪙</div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Your Token / SOL</p>
+                    <p className="text-xs text-muted-foreground">Solana • DEX</p>
+                  </div>
+                </div>
+                <div className="rounded-md bg-primary/10 border border-primary/20 p-2 mt-2">
+                  <p className="text-xs text-primary font-medium">🚀 Marketing Boost ⭐</p>
+                  <p className="text-xs text-muted-foreground">This token is running an ad campaign!</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-
-        <Link to="/product/ad/order" className="btn-learn-more w-full flex justify-center py-3">
-          Order Now
-        </Link>
       </div>
 
       <MarketplaceFooter />
