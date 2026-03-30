@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import MarketplaceHeader from "@/components/MarketplaceHeader";
 import MarketplaceFooter from "@/components/MarketplaceFooter";
+import Breadcrumb from "@/components/Breadcrumb";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -66,7 +67,7 @@ const TokenInfoOrder = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (tokenStatus === "has_info") {
-      navigate(`/product/community-takeover/order?chainId=${chain}&tokenAddress=${tokenAddress}`);
+      navigate(`/product/token-community-takeover/order?chainId=${chain}&tokenAddress=${tokenAddress}`);
       return;
     }
     navigate("/payment", {
@@ -86,18 +87,10 @@ const TokenInfoOrder = () => {
 
       <div className="bg-hero-glow">
         <div className="max-w-5xl mx-auto px-6 pt-10 pb-6 text-center">
-          {/* Breadcrumb */}
-          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-6">
-            <Link to="/" className="hover:text-foreground transition-colors flex items-center gap-1">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-              Home
-            </Link>
-            <span>/</span>
-            <Link to="/product/token-info" className="hover:text-foreground transition-colors">Enhanced Token Info</Link>
-            <span>/</span>
-            <span className="text-foreground">Order</span>
-          </div>
-
+          <Breadcrumb items={[
+            { label: "Enhanced Token Info", to: "/product/token-info" },
+            { label: "Order" },
+          ]} />
           <h1 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight mb-2">
             Enhanced Token Info
           </h1>
@@ -107,7 +100,6 @@ const TokenInfoOrder = () => {
           <div className="border-t border-border" />
         </div>
 
-        {/* Form */}
         <div className="max-w-2xl mx-auto px-6 py-10">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid md:grid-cols-2 gap-5">
@@ -144,10 +136,9 @@ const TokenInfoOrder = () => {
                     <AlertCircle className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
                     <p className="text-sm text-muted-foreground">
                       This token already contains Enhanced Token Info. You can proceed with{" "}
-                      <button type="button" onClick={() => navigate(`/product/community-takeover/order?chainId=${chain}&tokenAddress=${tokenAddress}`)} className="text-primary underline hover:no-underline">
+                      <button type="button" onClick={() => navigate(`/product/token-community-takeover/order?chainId=${chain}&tokenAddress=${tokenAddress}`)} className="text-primary underline hover:no-underline">
                         Community Takeover Claim
                       </button>
-                      . To request changes within the token info or to enquire about other matters, please email us at <span className="text-primary">@dexscreener.store</span>
                     </p>
                   </div>
                 </div>

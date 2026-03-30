@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import MarketplaceHeader from "@/components/MarketplaceHeader";
 import MarketplaceFooter from "@/components/MarketplaceFooter";
+import Breadcrumb from "@/components/Breadcrumb";
+import CryptoIcons from "@/components/CryptoIcons";
 
 const TrendingBarProduct = () => {
   return (
@@ -9,14 +11,7 @@ const TrendingBarProduct = () => {
 
       <div className="bg-hero-glow">
         <div className="max-w-5xl mx-auto px-6 pt-10 pb-8 text-center">
-          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-6">
-            <Link to="/" className="hover:text-foreground transition-colors flex items-center gap-1">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-              Home
-            </Link>
-            <span>/</span>
-            <span className="text-foreground">Trending Bar Advertising</span>
-          </div>
+          <Breadcrumb items={[{ label: "Trending Bar Advertising" }]} />
 
           <h1 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight mb-4">
             Trending Bar Advertising
@@ -30,56 +25,66 @@ const TrendingBarProduct = () => {
             Order Now -&nbsp; from $2,000.00
           </Link>
 
-          <div className="flex items-center justify-center gap-3 mt-5">
-            <span className="text-lg text-muted-foreground">◎</span>
-            <span className="text-lg text-muted-foreground">⟠</span>
-            <span className="text-lg text-muted-foreground">◆</span>
-            <span className="text-lg text-muted-foreground">₿</span>
-            <span className="text-lg text-muted-foreground">💳</span>
-          </div>
-          <p className="text-xs text-muted-foreground mt-2">Pay with crypto or credit card</p>
+          <CryptoIcons text="Pay with crypto or credit card" />
         </div>
 
-        <div className="max-w-5xl mx-auto px-6"><div className="border-t border-border" /></div>
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="border-t border-border" />
+        </div>
 
-        {/* Trending bar preview */}
-        <div className="max-w-4xl mx-auto px-6 py-12">
-          <div className="flex justify-center mb-8">
-            <div className="rounded-full bg-card border border-border px-5 py-2 flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Ad</span>
-              <div className="w-5 h-5 rounded-full bg-primary/30 flex items-center justify-center text-xs">₿</div>
-              <span className="text-sm font-semibold text-foreground">BITCOIN</span>
+        {/* Features */}
+        <div className="max-w-4xl mx-auto px-6 py-12 pb-16 space-y-12">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-foreground mb-3">Where will my ad appear?</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              On the Trending Bar for all tokens on the same chain as your token, rotated randomly along with up to 5 other advertisers
+            </p>
+          </div>
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-foreground mb-3">How long will my ad stay up?</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              You can pick an ad package ranging from 24 hours up to 1 week
+            </p>
+          </div>
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-foreground mb-3">Will my token be trending on DEX Screener?</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Ads help boost your token's Trending Score, but it does not in any way guarantee that your token will trend on DEX Screener
+            </p>
+          </div>
+
+          {/* How does it work */}
+          <div className="pt-8">
+            <h2 className="text-2xl font-bold text-foreground mb-8 text-center">How does it work?</h2>
+            <div className="grid md:grid-cols-4 gap-6 text-center">
+              <div>
+                <div className="w-10 h-10 rounded-full bg-primary/20 text-primary flex items-center justify-center mx-auto mb-3 text-sm font-bold">1</div>
+                <h3 className="font-semibold text-foreground mb-1">Tell us about your token</h3>
+                <p className="text-sm text-muted-foreground">All we need is token address, symbol and image</p>
+              </div>
+              <div>
+                <div className="w-10 h-10 rounded-full bg-primary/20 text-primary flex items-center justify-center mx-auto mb-3 text-sm font-bold">2</div>
+                <h3 className="font-semibold text-foreground mb-1">Pay</h3>
+                <p className="text-sm text-muted-foreground">Pick a package and budget that works for you. All major cryptocurrencies and credit/debit cards accepted</p>
+              </div>
+              <div>
+                <div className="w-10 h-10 rounded-full bg-primary/20 text-primary flex items-center justify-center mx-auto mb-3 text-sm font-bold">3</div>
+                <h3 className="font-semibold text-foreground mb-1">Wait for processing</h3>
+                <p className="text-sm text-muted-foreground">Most orders are processed within just a few minutes!</p>
+              </div>
+              <div>
+                <div className="w-10 h-10 rounded-full bg-primary/20 text-primary flex items-center justify-center mx-auto mb-3 text-sm font-bold">✓</div>
+                <h3 className="font-semibold text-foreground mb-1">Done!</h3>
+                <p className="text-sm text-muted-foreground">Your ad will start running on the DEX Screener website!</p>
+              </div>
             </div>
           </div>
 
-          {/* Simulated trending bar */}
-          <div className="rounded-lg border border-border bg-card overflow-hidden">
-            <div className="bg-secondary/80 px-4 py-2 flex items-center gap-4 text-xs overflow-x-auto">
-              <span className="flex items-center gap-1.5 text-primary font-medium whitespace-nowrap">
-                <span className="text-muted-foreground">Ad</span> 🪙 BITCOIN
-              </span>
-              <span className="flex items-center gap-1.5 whitespace-nowrap text-muted-foreground">
-                #1 🔷 ETHEREUM <span className="text-primary">2.30%</span>
-              </span>
-              <span className="flex items-center gap-1.5 whitespace-nowrap text-muted-foreground">
-                #2 ◎ SOLANA <span className="text-destructive">-0.20%</span>
-              </span>
-              <span className="flex items-center gap-1.5 whitespace-nowrap text-muted-foreground">
-                #3 🐕 DOGE <span className="text-destructive">-1.40%</span>
-              </span>
-              <span className="flex items-center gap-1.5 whitespace-nowrap text-muted-foreground">
-                #4 🐸 PEPE <span className="text-primary">4.20%</span>
-              </span>
-            </div>
-            <div className="p-8 text-center">
-              <div className="h-48 flex items-center justify-center">
-                <div className="text-center">
-                  <p className="text-3xl mb-2">📈</p>
-                  <p className="text-sm text-muted-foreground">Your token appears here in the trending bar</p>
-                  <p className="text-xs text-muted-foreground mt-1">Visible to every user on the platform</p>
-                </div>
-              </div>
-            </div>
+          {/* Bottom CTA */}
+          <div className="text-center pt-4">
+            <Link to="/product/trending-bar-ad/order" className="btn-learn-more px-8 py-3 text-base">
+              Order Now -&nbsp; from $2,000.00
+            </Link>
           </div>
         </div>
       </div>

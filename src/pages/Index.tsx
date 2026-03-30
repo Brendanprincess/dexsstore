@@ -7,7 +7,6 @@ const Index = () => {
     <div className="min-h-screen bg-page-gradient">
       <MarketplaceHeader />
 
-      {/* Hero glow overlay */}
       <div className="bg-hero-glow">
         {/* Hero */}
         <div className="max-w-5xl mx-auto px-6 pt-24 pb-8 text-center">
@@ -27,13 +26,22 @@ const Index = () => {
         {/* For Tokens */}
         <div className="max-w-5xl mx-auto px-6 pb-12">
           <h2 className="text-2xl font-bold text-foreground mb-5">For Tokens</h2>
-          <div className="max-w-md">
+          <div className="grid md:grid-cols-2 gap-4 max-w-3xl">
             <div className="rounded-2xl bg-card border border-border p-6">
               <h3 className="text-base font-semibold text-foreground mb-2">Enhanced Token Info</h3>
               <p className="text-sm text-muted-foreground leading-relaxed mb-5">
                 Quickly update your DEX Screener token page with accurate and up-to-date info and socials
               </p>
               <Link to="/product/token-info" className="btn-learn-more">
+                Learn more
+              </Link>
+            </div>
+            <div className="rounded-2xl bg-card border border-border p-6">
+              <h3 className="text-base font-semibold text-foreground mb-2">Token Community Takeover</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-5">
+                Add a Community Takeover Claim to a project with an existing profile
+              </p>
+              <Link to="/product/token-community-takeover" className="btn-learn-more">
                 Learn more
               </Link>
             </div>
