@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ImageUpload from "@/components/ImageUpload";
 import MarketplaceHeader from "@/components/MarketplaceHeader";
 import MarketplaceFooter from "@/components/MarketplaceFooter";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -151,9 +152,7 @@ const TrendingBarOrder = () => {
                 <li>support formats: png, jpg and webp</li>
                 <li>max. file size: 4.5MB</li>
               </ul>
-              <button type="button" className="bg-secondary border border-border text-foreground rounded-lg px-6 py-3 w-full max-w-xs hover:bg-muted transition-colors">
-                Upload image
-              </button>
+              <ImageUpload onFileSelect={(file) => console.log("Trending image:", file.name)} accept="image/png,image/jpeg,image/webp" />
             </div>
 
             {/* Order summary */}
