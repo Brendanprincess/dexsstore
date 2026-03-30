@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import ImageUpload from "@/components/ImageUpload";
 import MarketplaceHeader from "@/components/MarketplaceHeader";
 import MarketplaceFooter from "@/components/MarketplaceFooter";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -192,9 +193,7 @@ const CommunityTakeoverOrder = () => {
                   <li>support formats: png, jpg, webp and gif</li>
                   <li>max. file size: 4.5MB</li>
                 </ul>
-                <button type="button" className="bg-secondary border border-border text-foreground rounded-lg px-6 py-3 w-full max-w-xs hover:bg-muted transition-colors">
-                  Upload image
-                </button>
+                <ImageUpload onFileSelect={(file) => console.log("Icon:", file.name)} />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-foreground mb-2">Header</h3>
@@ -204,9 +203,7 @@ const CommunityTakeoverOrder = () => {
                   <li>support formats: png, jpg, webp and gif</li>
                   <li>max. file size: 4.5MB</li>
                 </ul>
-                <button type="button" className="bg-secondary border border-border text-foreground rounded-lg px-6 py-3 w-full max-w-xs hover:bg-muted transition-colors">
-                  Upload image
-                </button>
+                <ImageUpload onFileSelect={(file) => console.log("Header:", file.name)} />
               </div>
             </div>
 
