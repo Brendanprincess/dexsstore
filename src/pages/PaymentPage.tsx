@@ -40,7 +40,7 @@ const PaymentPage = () => {
 
   return (
     <div className="min-h-screen bg-page-gradient">
-      <MarketplaceHeader showBack />
+      <MarketplaceHeader />
 
       <div className="max-w-lg mx-auto px-6 py-12">
         <div className="rounded-2xl border border-border bg-card p-5 mb-8">
