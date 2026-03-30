@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { useNavigate, Link } from "react-router-dom";
 import MarketplaceHeader from "@/components/MarketplaceHeader";
 import MarketplaceFooter from "@/components/MarketplaceFooter";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowRight, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
 
 const CHAINS = [
   { value: "solana", label: "Solana" },
@@ -37,13 +36,9 @@ const TokenInfoOrder = () => {
     if (!address || !selectedChain) return;
     setChecking(true);
     setTokenStatus("none");
-
     try {
-      const res = await fetch(
-        `https://api.dexscreener.com/latest/dex/tokens/${address}`
-      );
+      const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${address}`);
       const data = await res.json();
-
       if (data?.pairs && data.pairs.length > 0) {
         const pair = data.pairs[0];
         const hasInfo = pair.info?.imageUrl || pair.info?.websites?.length > 0 || pair.info?.socials?.length > 0;
@@ -60,16 +55,12 @@ const TokenInfoOrder = () => {
 
   const handleAddressChange = (val: string) => {
     setTokenAddress(val);
-    if (val.length > 20 && chain) {
-      checkToken(val, chain);
-    }
+    if (val.length > 20 && chain) checkToken(val, chain);
   };
 
   const handleChainChange = (val: string) => {
     setChain(val);
-    if (tokenAddress.length > 20) {
-      checkToken(tokenAddress, val);
-    }
+    if (tokenAddress.length > 20) checkToken(tokenAddress, val);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -81,7 +72,7 @@ const TokenInfoOrder = () => {
     navigate("/payment", {
       state: {
         service: "Enhanced Token Info",
-        price: 269.10,
+        price: 299.00,
         details: { chain, tokenAddress, tokenName, description, website, twitter, telegram, discord, logoUrl, email },
       },
     });
@@ -90,24 +81,40 @@ const TokenInfoOrder = () => {
   const isFormValid = chain && tokenAddress && tokenName && email && tokenStatus !== "has_info";
 
   return (
-    <div className="min-h-screen bg-background">
-      <MarketplaceHeader showBack />
+    <div className="min-h-screen bg-page-gradient">
+      <MarketplaceHeader />
 
-      <div className="container max-w-2xl mx-auto px-4 py-12">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="font-display text-2xl font-bold text-foreground mb-1">
-            Order Enhanced Token Info
+      <div className="bg-hero-glow">
+        <div className="max-w-5xl mx-auto px-6 pt-10 pb-6 text-center">
+          {/* Breadcrumb */}
+          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-6">
+            <Link to="/" className="hover:text-foreground transition-colors flex items-center gap-1">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              Home
+            </Link>
+            <span>/</span>
+            <Link to="/product/token-info" className="hover:text-foreground transition-colors">Enhanced Token Info</Link>
+            <span>/</span>
+            <span className="text-foreground">Order</span>
+          </div>
+
+          <h1 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight mb-2">
+            Enhanced Token Info
           </h1>
-          <p className="text-muted-foreground text-sm mb-8">
-            Fill in your token details below. Price: <span className="text-primary font-semibold">$269.10</span>
-          </p>
+        </div>
 
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="border-t border-border" />
+        </div>
+
+        {/* Form */}
+        <div className="max-w-2xl mx-auto px-6 py-10">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid md:grid-cols-2 gap-5">
               <div>
-                <Label className="text-foreground">Chain *</Label>
+                <Label className="text-sm text-foreground mb-1.5 block">Chain *</Label>
                 <Select value={chain} onValueChange={handleChainChange}>
-                  <SelectTrigger className="mt-1.5 bg-secondary border-border text-foreground">
+                  <SelectTrigger className="bg-secondary border-border text-foreground">
                     <SelectValue placeholder="Select chain" />
                   </SelectTrigger>
                   <SelectContent>
@@ -118,136 +125,85 @@ const TokenInfoOrder = () => {
                 </Select>
               </div>
               <div>
-                <Label className="text-foreground">Token Name *</Label>
-                <Input
-                  value={tokenName}
-                  onChange={(e) => setTokenName(e.target.value)}
-                  placeholder="e.g. My Token"
-                  className="mt-1.5 bg-secondary border-border text-foreground"
-                />
+                <Label className="text-sm text-foreground mb-1.5 block">Token Name *</Label>
+                <Input value={tokenName} onChange={(e) => setTokenName(e.target.value)} placeholder="e.g. My Token" className="bg-secondary border-border text-foreground" />
               </div>
             </div>
 
             <div>
-              <Label className="text-foreground">Token Contract Address *</Label>
-              <Input
-                value={tokenAddress}
-                onChange={(e) => handleAddressChange(e.target.value)}
-                placeholder="Enter token contract address"
-                className="mt-1.5 bg-secondary border-border text-foreground"
-              />
+              <Label className="text-sm text-foreground mb-1.5 block">Token Contract Address *</Label>
+              <Input value={tokenAddress} onChange={(e) => handleAddressChange(e.target.value)} placeholder="Enter token contract address" className="bg-secondary border-border text-foreground" />
               {checking && (
                 <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
                   <Loader2 className="w-4 h-4 animate-spin" /> Checking token status...
                 </div>
               )}
               {tokenStatus === "has_info" && (
-                <div className="mt-2 p-3 rounded-lg bg-warning/10 border border-warning/20">
+                <div className="mt-2 p-3 rounded-lg bg-card border border-border">
                   <div className="flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-warning mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-foreground">
-                      This token already has Enhanced Token Info. You can proceed with{" "}
-                      <button
-                        type="button"
-                        onClick={() => navigate(`/product/community-takeover/order?chainId=${chain}&tokenAddress=${tokenAddress}`)}
-                        className="text-primary underline hover:no-underline"
-                      >
+                    <AlertCircle className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">
+                      This token already contains Enhanced Token Info. You can proceed with{" "}
+                      <button type="button" onClick={() => navigate(`/product/community-takeover/order?chainId=${chain}&tokenAddress=${tokenAddress}`)} className="text-primary underline hover:no-underline">
                         Community Takeover Claim
                       </button>
-                      . To request changes or other enquiries, email us at{" "}
-                      <span className="text-primary">support@dexmarketplace.com</span>
+                      . To request changes within the token info or to enquire about other matters, please email us at <span className="text-primary">@dexscreener.store</span>
                     </p>
                   </div>
                 </div>
               )}
               {tokenStatus === "available" && (
-                <div className="flex items-center gap-2 mt-2 text-sm text-success">
+                <div className="flex items-center gap-2 mt-2 text-sm text-primary">
                   <CheckCircle className="w-4 h-4" /> Enhanced Token Info can be purchased for this token!
                 </div>
               )}
             </div>
 
             <div>
-              <Label className="text-foreground">Contact Email *</Label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="mt-1.5 bg-secondary border-border text-foreground"
-              />
+              <Label className="text-sm text-foreground mb-1.5 block">Contact Email *</Label>
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="bg-secondary border-border text-foreground" />
             </div>
 
             <div>
-              <Label className="text-foreground">Token Description</Label>
-              <Textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Brief description of your token project"
-                className="mt-1.5 bg-secondary border-border text-foreground min-h-[100px]"
-              />
+              <Label className="text-sm text-foreground mb-1.5 block">Token Description</Label>
+              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Brief description of your token project" className="bg-secondary border-border text-foreground min-h-[100px]" />
             </div>
 
             <div className="grid md:grid-cols-2 gap-5">
               <div>
-                <Label className="text-foreground">Website URL</Label>
-                <Input
-                  value={website}
-                  onChange={(e) => setWebsite(e.target.value)}
-                  placeholder="https://yourproject.com"
-                  className="mt-1.5 bg-secondary border-border text-foreground"
-                />
+                <Label className="text-sm text-foreground mb-1.5 block">Website URL</Label>
+                <Input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://yourproject.com" className="bg-secondary border-border text-foreground" />
               </div>
               <div>
-                <Label className="text-foreground">Logo URL</Label>
-                <Input
-                  value={logoUrl}
-                  onChange={(e) => setLogoUrl(e.target.value)}
-                  placeholder="https://... (PNG, min 256x256)"
-                  className="mt-1.5 bg-secondary border-border text-foreground"
-                />
+                <Label className="text-sm text-foreground mb-1.5 block">Logo URL</Label>
+                <Input value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="https://... (PNG, min 256x256)" className="bg-secondary border-border text-foreground" />
               </div>
             </div>
 
             <div className="grid md:grid-cols-3 gap-5">
               <div>
-                <Label className="text-foreground">Twitter</Label>
-                <Input
-                  value={twitter}
-                  onChange={(e) => setTwitter(e.target.value)}
-                  placeholder="@handle"
-                  className="mt-1.5 bg-secondary border-border text-foreground"
-                />
+                <Label className="text-sm text-foreground mb-1.5 block">Twitter</Label>
+                <Input value={twitter} onChange={(e) => setTwitter(e.target.value)} placeholder="@handle" className="bg-secondary border-border text-foreground" />
               </div>
               <div>
-                <Label className="text-foreground">Telegram</Label>
-                <Input
-                  value={telegram}
-                  onChange={(e) => setTelegram(e.target.value)}
-                  placeholder="t.me/group"
-                  className="mt-1.5 bg-secondary border-border text-foreground"
-                />
+                <Label className="text-sm text-foreground mb-1.5 block">Telegram</Label>
+                <Input value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="t.me/group" className="bg-secondary border-border text-foreground" />
               </div>
               <div>
-                <Label className="text-foreground">Discord</Label>
-                <Input
-                  value={discord}
-                  onChange={(e) => setDiscord(e.target.value)}
-                  placeholder="discord.gg/invite"
-                  className="mt-1.5 bg-secondary border-border text-foreground"
-                />
+                <Label className="text-sm text-foreground mb-1.5 block">Discord</Label>
+                <Input value={discord} onChange={(e) => setDiscord(e.target.value)} placeholder="discord.gg/invite" className="bg-secondary border-border text-foreground" />
               </div>
             </div>
 
             <button
               type="submit"
               disabled={!isFormValid}
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-gradient-primary text-primary-foreground font-display font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed shadow-glow"
+              className="btn-learn-more w-full py-3 text-base disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Order Now — $269.10 <ArrowRight className="w-4 h-4" />
+              Order Now — $299.00
             </button>
           </form>
-        </motion.div>
+        </div>
       </div>
 
       <MarketplaceFooter />
