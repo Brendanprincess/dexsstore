@@ -10,6 +10,7 @@ import AdProduct from "./pages/AdProduct.tsx";
 import AdOrder from "./pages/AdOrder.tsx";
 import TrendingBarProduct from "./pages/TrendingBarProduct.tsx";
 import TrendingBarOrder from "./pages/TrendingBarOrder.tsx";
+import CommunityTakeoverProduct from "./pages/CommunityTakeoverProduct.tsx";
 import CommunityTakeoverOrder from "./pages/CommunityTakeoverOrder.tsx";
 import PaymentPage from "./pages/PaymentPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -30,7 +31,8 @@ const App = () => (
           <Route path="/product/ad/order" element={<AdOrder />} />
           <Route path="/product/trending-bar-ad" element={<TrendingBarProduct />} />
           <Route path="/product/trending-bar-ad/order" element={<TrendingBarOrder />} />
-          <Route path="/product/community-takeover/order" element={<CommunityTakeoverOrder />} />
+          <Route path="/product/token-community-takeover" element={<CommunityTakeoverProduct />} />
+          <Route path="/product/token-community-takeover/order" element={<CommunityTakeoverOrder />} />
           <Route path="/payment" element={<PaymentPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

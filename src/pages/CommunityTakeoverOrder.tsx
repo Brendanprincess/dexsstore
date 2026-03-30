@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import MarketplaceHeader from "@/components/MarketplaceHeader";
 import MarketplaceFooter from "@/components/MarketplaceFooter";
+import Breadcrumb from "@/components/Breadcrumb";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -26,7 +27,7 @@ const CommunityTakeoverOrder = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     navigate("/payment", {
-      state: { service: "Community Takeover Claim", price: 199.00, details: { chain, tokenAddress, email, reason } },
+      state: { service: "Token Community Takeover", price: 199.00, details: { chain, tokenAddress, email, reason } },
     });
   };
 
@@ -36,16 +37,12 @@ const CommunityTakeoverOrder = () => {
 
       <div className="bg-hero-glow">
         <div className="max-w-5xl mx-auto px-6 pt-10 pb-6 text-center">
-          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-6">
-            <Link to="/" className="hover:text-foreground transition-colors flex items-center gap-1">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-              Home
-            </Link>
-            <span>/</span>
-            <span className="text-foreground">Community Takeover Claim</span>
-          </div>
+          <Breadcrumb items={[
+            { label: "Token Community Takeover", to: "/product/token-community-takeover" },
+            { label: "Order" },
+          ]} />
           <h1 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight mb-2">
-            Community Takeover
+            Token Community Takeover
           </h1>
         </div>
 
