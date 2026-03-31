@@ -160,9 +160,9 @@ const TokenInfoOrder = () => {
                 <div className="mt-2">
                   <p className="text-sm text-[hsl(0,60%,70%)]">
                     This token already contains Enhanced Token Info. You can proceed with{" "}
-                    <strong className="text-foreground">Community Takeover Claim</strong>.
+                    <a href="/product/token-community-takeover" className="text-foreground font-bold underline hover:no-underline">Community Takeover Claim</a>.
                     {" "}To request changes within the token info or to enquire about other matters, please email us at{" "}
-                    <a href="mailto:support@dexscreener.store" className="text-primary underline hover:no-underline">support@dexscreener.store</a>
+                    <a href="mailto:support@dexscreener.store" className="text-primary underline hover:no-underline">@dexscreener.store</a>
                   </p>
                 </div>
               )}
