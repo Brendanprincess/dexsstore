@@ -160,9 +160,9 @@ const TokenInfoOrder = () => {
                 <div className="mt-2">
                   <p className="text-sm text-[hsl(0,60%,70%)]">
                     This token already contains Enhanced Token Info. You can proceed with{" "}
-                    <strong className="text-foreground">Community Takeover Claim</strong>.
+                    <a href="/product/token-community-takeover" className="text-foreground font-bold underline hover:no-underline">Community Takeover Claim</a>.
                     {" "}To request changes within the token info or to enquire about other matters, please email us at{" "}
-                    <a href="mailto:support@dexscreener.store" className="text-primary underline hover:no-underline">support@dexscreener.store</a>
+                    <a href="mailto:support@dexscreener.store" className="text-primary underline hover:no-underline">@dexscreener.store</a>
                   </p>
                 </div>
               )}
@@ -366,15 +366,15 @@ const TokenInfoOrder = () => {
 
             <p className="text-sm text-foreground">
               By completing this purchase, I confirm that I've read and agree to the{" "}
-              <a href="#" className="text-primary underline hover:no-underline">Refund Policy</a>.
+              <a href="https://docs.dexscreener.com/privacy/refund-policy" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:no-underline">Refund Policy</a>.
             </p>
 
             {tokenStatus === "has_info" && (
               <p className="text-sm text-[hsl(0,60%,70%)]">
                 This token already contains Enhanced Token Info. You can proceed with{" "}
-                <strong className="text-foreground">Community Takeover Claim</strong>.
+                <a href="/product/token-community-takeover" className="text-foreground font-bold underline hover:no-underline">Community Takeover Claim</a>.
                 {" "}To request changes within the token info or to enquire about other matters, please email us at{" "}
-                <a href="mailto:support@dexscreener.store" className="text-primary underline hover:no-underline">support@dexscreener.store</a>
+                <a href="mailto:support@dexscreener.store" className="text-primary underline hover:no-underline">@dexscreener.store</a>
               </p>
             )}
 
