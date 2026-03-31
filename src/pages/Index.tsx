@@ -36,15 +36,6 @@ const Index = () => {
                 Learn more
               </Link>
             </div>
-            <div className="rounded-2xl bg-card border border-border p-6">
-              <h3 className="text-base font-semibold text-foreground mb-2">Token Community Takeover</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed mb-5">
-                Add a Community Takeover Claim to a project with an existing profile
-              </p>
-              <Link to="/product/token-community-takeover" className="btn-learn-more">
-                Learn more
-              </Link>
-            </div>
           </div>
         </div>
 
