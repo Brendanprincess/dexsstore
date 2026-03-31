@@ -157,16 +157,13 @@ const TokenInfoOrder = () => {
                 </div>
               )}
               {tokenStatus === "has_info" && (
-                <div className="mt-2 p-3 rounded-lg bg-card border border-border">
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-muted-foreground">
-                      This token already contains Enhanced Token Info. You can proceed with{" "}
-                      <button type="button" onClick={() => navigate(`/product/token-community-takeover/order?chainId=${chain}&tokenAddress=${tokenAddress}`)} className="text-primary underline hover:no-underline">
-                        Community Takeover Claim
-                      </button>
-                    </p>
-                  </div>
+                <div className="mt-2">
+                  <p className="text-sm text-[hsl(0,60%,70%)]">
+                    This token already contains Enhanced Token Info. You can proceed with{" "}
+                    <strong className="text-foreground">Community Takeover Claim</strong>.
+                    {" "}To request changes within the token info or to enquire about other matters, please email us at{" "}
+                    <a href="mailto:support@dexscreener.store" className="text-primary underline hover:no-underline">support@dexscreener.store</a>
+                  </p>
                 </div>
               )}
               {tokenStatus === "available" && (
