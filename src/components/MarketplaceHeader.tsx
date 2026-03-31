@@ -10,9 +10,7 @@ const MarketplaceHeader = () => {
           <span className="font-bold text-foreground">DEX Screener</span>
           <span className="text-muted-foreground">Marketplace</span>
         </Link>
-        <button className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-          Sign In
-        </button>
+        <div />
       </div>
     </header>
   );
