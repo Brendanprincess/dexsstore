@@ -49,7 +49,7 @@ const TrendingBarProduct = () => {
           <div className="text-center">
             <h2 className="text-2xl font-bold text-foreground mb-3">Will my token be trending on DEX Screener?</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Ads help boost your token's Trending Score, but it does not in any way guarantee that your token will trend on DEX Screener
+              Ads help boost your token's <a href="https://dexscreener.com" className="text-foreground underline hover:no-underline">Trending Score</a>, but it does not in any way guarantee that your token will trend on DEX Screener
             </p>
           </div>
 
