@@ -33,15 +33,20 @@ const CommunityTakeoverOrder = () => {
   const [searchParams] = useSearchParams();
   const [chain, setChain] = useState(searchParams.get("chainId") || "");
   const [tokenAddress, setTokenAddress] = useState(searchParams.get("tokenAddress") || "");
+  const [tokenValid, setTokenValid] = useState(!!searchParams.get("tokenAddress"));
+
+  const [description, setDescription] = useState("");
+  const [takeoverClaim, setTakeoverClaim] = useState("");
 
   const [links, setLinks] = useState<Record<string, string>>({});
   const [activeLinkFields, setActiveLinkFields] = useState<string[]>([]);
   const [additionalLinks, setAdditionalLinks] = useState<string[]>([]);
-  const [supplyDescription, setSupplyDescription] = useState("");
   const [lockedAddresses, setLockedAddresses] = useState<string[]>([]);
+  const [supplyDescription, setSupplyDescription] = useState("");
 
   const [check1, setCheck1] = useState(false);
   const [check2, setCheck2] = useState(false);
+  const [check3, setCheck3] = useState(false);
 
   const toggleLinkField = (key: string) => {
     if (activeLinkFields.includes(key)) {
@@ -54,14 +59,20 @@ const CommunityTakeoverOrder = () => {
     }
   };
 
+  const handleTokenAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setTokenAddress(val);
+    setTokenValid(val.length > 20);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chain || !tokenAddress || !check1 || !check2) return;
+    if (!chain || !tokenAddress || !check1 || !check2 || !check3) return;
     navigate("/payment", {
       state: {
         service: "Token Community Takeover",
         price: 199.00,
-        details: { chain, tokenAddress, links, additionalLinks, lockedAddresses, supplyDescription },
+        details: { chain, tokenAddress, description, takeoverClaim, links, additionalLinks, lockedAddresses, supplyDescription },
       },
     });
   };
@@ -84,6 +95,26 @@ const CommunityTakeoverOrder = () => {
         <div className="max-w-5xl mx-auto px-6"><div className="border-t border-border" /></div>
 
         <div className="max-w-2xl mx-auto px-6 py-10">
+          {/* Requirements section */}
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold text-foreground mb-4">Requirements</h2>
+            <p className="text-muted-foreground mb-4">Checklist of major requirements that may fast track the approval:</p>
+            <ul className="text-muted-foreground space-y-2 mb-6 list-disc list-inside">
+              <li>Ownership of socials on file can be proven</li>
+              <li>The new Telegram group is pinned in the old Telegram group</li>
+              <li>The current socials on file are completely dead (inaccessible/defunct)</li>
+              <li>The current socials on file are a blatant scam or are no longer used for community purposes of the token (we will need clear proof)</li>
+            </ul>
+            <p className="text-foreground font-semibold mb-4">In case none of the above requirements are met, here are a few other things that we will be looking at:</p>
+            <ul className="text-muted-foreground space-y-2 mb-6 list-disc list-inside">
+              <li>The state of the current community: Has there been any recent activity? Are any of the channels muted/locked (for example only buybot spam)?</li>
+              <li>How does the size of the new community compare to the old community?</li>
+            </ul>
+            <p className="text-foreground leading-relaxed">
+              Please note that some tokens were not meant to have a community other than what was listed on the original profile. We may not approve the Community Takeover in such cases.
+            </p>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Chain */}
             <div>
@@ -105,18 +136,43 @@ const CommunityTakeoverOrder = () => {
               <h2 className="text-lg font-bold text-foreground mb-3">Token Address</h2>
               <Input
                 value={tokenAddress}
-                onChange={(e) => setTokenAddress(e.target.value)}
+                onChange={handleTokenAddressChange}
                 placeholder=""
                 className="bg-secondary border-border text-foreground"
               />
+              {tokenValid && tokenAddress && (
+                <p className="flex items-center gap-2 text-[hsl(142,70%,55%)] text-sm mt-3">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  Community Takeover Claim can be purchased for this token!
+                </p>
+              )}
             </div>
 
             {/* Description */}
             <div>
-              <h2 className="text-lg font-bold text-foreground mb-3">Description</h2>
+              <h2 className="text-lg font-bold text-foreground mb-2">Description</h2>
+              <p className="text-sm text-muted-foreground mb-3">
+                Project description. Plain text only. Emojis and multilines allowed. Description will be displayed on the pair details page on DEX Screener.
+              </p>
               <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 placeholder=""
-                className="bg-secondary border-border text-foreground min-h-[100px]"
+                className="bg-secondary border-border text-foreground min-h-[150px]"
+              />
+            </div>
+
+            {/* Takeover Claim */}
+            <div>
+              <h2 className="text-lg font-bold text-foreground mb-2">Takeover Claim</h2>
+              <p className="text-sm text-muted-foreground mb-3">
+                Please provide a short explanation for why the community is taking over this project. This explanation will be displayed on DEX Screener.
+              </p>
+              <Textarea
+                value={takeoverClaim}
+                onChange={(e) => setTakeoverClaim(e.target.value)}
+                placeholder=""
+                className="bg-secondary border-border text-foreground min-h-[150px]"
               />
             </div>
 
@@ -193,7 +249,7 @@ const CommunityTakeoverOrder = () => {
                   <li>support formats: png, jpg, webp and gif</li>
                   <li>max. file size: 4.5MB</li>
                 </ul>
-                <ImageUpload onFileSelect={(file) => console.log("Icon:", file.name)} />
+                <ImageUpload onFileSelect={(file) => console.log("Icon:", file.name)} label="No file chosen" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-foreground mb-2">Header</h3>
@@ -203,7 +259,7 @@ const CommunityTakeoverOrder = () => {
                   <li>support formats: png, jpg, webp and gif</li>
                   <li>max. file size: 4.5MB</li>
                 </ul>
-                <ImageUpload onFileSelect={(file) => console.log("Header:", file.name)} />
+                <ImageUpload onFileSelect={(file) => console.log("Header:", file.name)} label="No file chosen" />
               </div>
             </div>
 
@@ -271,7 +327,7 @@ const CommunityTakeoverOrder = () => {
                     <div>
                       <p className="text-foreground font-medium">Token Community Takeover</p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        ETA: Submission will be verified by DEX Screener. Average processing time after receiving payment is less than 15 minutes.
+                        ETA: Submission will be verified by DEX Screener. Average processing time after receiving payment is less than 12 hours.
                       </p>
                     </div>
                     <span className="text-foreground font-medium whitespace-nowrap ml-4">
@@ -296,17 +352,23 @@ const CommunityTakeoverOrder = () => {
                   I understand and accept that DEX Screener reserves the right to reject or modify the provided information.
                 </span>
               </label>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input type="checkbox" checked={check3} onChange={(e) => setCheck3(e.target.checked)} className="mt-1 accent-primary" />
+                <span className="text-sm text-foreground font-medium">
+                  I understand that no refund shall be granted in case my Community Takeover order does not get approved.
+                </span>
+              </label>
             </div>
 
             <p className="text-sm text-foreground">
               By completing this purchase, I confirm that I've read and agree to the{" "}
-              <a href="#" className="text-primary underline hover:no-underline">Refund Policy</a>.
+              <a href="https://docs.dexscreener.com/privacy/refund-policy" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:no-underline">Refund Policy</a>.
             </p>
 
             <div className="flex justify-center">
               <button
                 type="submit"
-                disabled={!chain || !tokenAddress || !check1 || !check2}
+                disabled={!chain || !tokenAddress || !check1 || !check2 || !check3}
                 className="btn-learn-more px-10 py-3 text-base disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Order Now
