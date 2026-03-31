@@ -49,31 +49,32 @@ const TrendingBarProduct = () => {
           <div className="text-center">
             <h2 className="text-2xl font-bold text-foreground mb-3">Will my token be trending on DEX Screener?</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Ads help boost your token's Trending Score, but it does not in any way guarantee that your token will trend on DEX Screener
+              Ads help boost your token's <a href="https://dexscreener.com" className="text-foreground underline hover:no-underline">Trending Score</a>, but it does not in any way guarantee that your token will trend on DEX Screener
             </p>
           </div>
 
           {/* How does it work */}
           <div className="pt-8">
-            <h2 className="text-2xl font-bold text-foreground mb-8 text-center">How does it work?</h2>
-            <div className="grid md:grid-cols-4 gap-6 text-center">
+            <div className="border-t border-border mb-12" />
+            <h2 className="text-3xl font-bold text-foreground mb-12 text-center">How does it work?</h2>
+            <div className="flex flex-col items-center gap-10 text-center max-w-2xl mx-auto">
               <div>
-                <div className="w-10 h-10 rounded-full bg-primary/20 text-primary flex items-center justify-center mx-auto mb-3 text-sm font-bold">1</div>
+                <div className="w-10 h-10 rounded-full bg-muted-foreground/30 text-foreground flex items-center justify-center mx-auto mb-3 text-sm font-bold">1</div>
                 <h3 className="font-semibold text-foreground mb-1">Tell us about your token</h3>
                 <p className="text-sm text-muted-foreground">All we need is token address, symbol and image</p>
               </div>
               <div>
-                <div className="w-10 h-10 rounded-full bg-primary/20 text-primary flex items-center justify-center mx-auto mb-3 text-sm font-bold">2</div>
+                <div className="w-10 h-10 rounded-full bg-muted-foreground/30 text-foreground flex items-center justify-center mx-auto mb-3 text-sm font-bold">2</div>
                 <h3 className="font-semibold text-foreground mb-1">Pay</h3>
                 <p className="text-sm text-muted-foreground">Pick a package and budget that works for you. All major cryptocurrencies and credit/debit cards accepted</p>
               </div>
               <div>
-                <div className="w-10 h-10 rounded-full bg-primary/20 text-primary flex items-center justify-center mx-auto mb-3 text-sm font-bold">3</div>
+                <div className="w-10 h-10 rounded-full bg-muted-foreground/30 text-foreground flex items-center justify-center mx-auto mb-3 text-sm font-bold">3</div>
                 <h3 className="font-semibold text-foreground mb-1">Wait for processing</h3>
                 <p className="text-sm text-muted-foreground">Most orders are processed within just a few minutes!</p>
               </div>
               <div>
-                <div className="w-10 h-10 rounded-full bg-primary/20 text-primary flex items-center justify-center mx-auto mb-3 text-sm font-bold">✓</div>
+                <div className="w-10 h-10 rounded-full bg-muted-foreground/30 text-foreground flex items-center justify-center mx-auto mb-3 text-sm font-bold">✓</div>
                 <h3 className="font-semibold text-foreground mb-1">Done!</h3>
                 <p className="text-sm text-muted-foreground">Your ad will start running on the DEX Screener website!</p>
               </div>
