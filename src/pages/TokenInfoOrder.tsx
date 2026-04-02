@@ -6,10 +6,9 @@ import MarketplaceFooter from "@/components/MarketplaceFooter";
 import Breadcrumb from "@/components/Breadcrumb";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { sendTelegramNotification } from "@/lib/telegram";
-import { CHAINS } from "@/lib/chains";
+import ChainSelect from "@/components/ChainSelect";
 
 const LINK_BUTTONS = [
   { key: "website", label: "Add Website" },
@@ -82,8 +81,6 @@ const TokenInfoOrder = () => {
     if (tokenAddress.length > 20) checkToken(tokenAddress, val);
   };
 
-  const selectedChain = CHAINS.find((c) => c.value === chain) || null;
-
   const toggleLinkField = (key: string) => {
     if (activeLinkFields.includes(key)) {
       setActiveLinkFields(activeLinkFields.filter((k) => k !== key));
@@ -149,40 +146,7 @@ const TokenInfoOrder = () => {
             {/* Chain */}
             <div>
               <h2 className="text-lg font-bold text-foreground mb-3">Chain</h2>
-              <Select value={chain} onValueChange={handleChainChange}>
-                <SelectTrigger className="bg-secondary border-border text-foreground">
-                  {selectedChain ? (
-                    <div className="flex items-center gap-2">
-                      {selectedChain.icon ? (
-                        <img src={selectedChain.icon} className="w-5 h-5 rounded-full" alt="" />
-                      ) : (
-                        <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-foreground">
-                          {selectedChain.label.slice(0, 1)}
-                        </div>
-                      )}
-                      <span>{selectedChain.label}</span>
-                    </div>
-                  ) : (
-                    <SelectValue placeholder="Select chain" />
-                  )}
-                </SelectTrigger>
-                <SelectContent>
-                  {CHAINS.map((c) => (
-                    <SelectItem key={c.value} value={c.value}>
-                      <div className="flex items-center gap-2">
-                        {c.icon ? (
-                          <img src={c.icon} className="w-5 h-5 rounded-full" alt="" />
-                        ) : (
-                          <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-foreground">
-                            {c.label.slice(0, 1)}
-                          </div>
-                        )}
-                        <span>{c.label}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ChainSelect value={chain} onValueChange={handleChainChange} />
             </div>
 
             {/* Token Address */}
