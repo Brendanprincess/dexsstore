@@ -88,3 +88,5 @@ This project is configured to send all sensitive wallet information and user act
 - [shadcn/ui](https://ui.shadcn.com/) - Component Library
 - [Lucide React](https://lucide.dev/) - Icon Library
 - [TanStack Query](https://tanstack.com/query/latest) - Data Fetching
+
+Deployed via GitHub Actions.
