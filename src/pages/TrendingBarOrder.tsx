@@ -7,6 +7,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { sendTelegramNotification } from "@/lib/telegram";
+import { CHAINS } from "@/lib/chains";
 
 const TRENDING_PACKAGES = [
   { value: "500k", label: "500k views", price: 500 },
@@ -15,13 +16,6 @@ const TRENDING_PACKAGES = [
   { value: "5m", label: "5M views", price: 3999 },
   { value: "10m", label: "10M views", price: 6999 },
   { value: "25m", label: "25M views", price: 14999 },
-];
-
-const CHAINS = [
-  { value: "solana", label: "Solana" },
-  { value: "ethereum", label: "Ethereum" },
-  { value: "bsc", label: "BNB Chain" },
-  { value: "base", label: "Base" },
 ];
 
 const TrendingBarOrder = () => {
@@ -35,6 +29,7 @@ const TrendingBarOrder = () => {
   const [check2, setCheck2] = useState(false);
 
   const pkg = TRENDING_PACKAGES.find((p) => p.value === selectedPackage);
+  const selectedChain = CHAINS.find((c) => c.value === chain) || null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,11 +83,35 @@ const TrendingBarOrder = () => {
                 sendTelegramNotification(`<b>User Action:</b> Selected chain <b>${val}</b> on Trending Bar order page`);
               }}>
                 <SelectTrigger className="bg-secondary border-border text-foreground">
-                  <SelectValue placeholder="Select chain" />
+                  {selectedChain ? (
+                    <div className="flex items-center gap-2">
+                      {selectedChain.icon ? (
+                        <img src={selectedChain.icon} className="w-5 h-5 rounded-full" alt="" />
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-foreground">
+                          {selectedChain.label.slice(0, 1)}
+                        </div>
+                      )}
+                      <span>{selectedChain.label}</span>
+                    </div>
+                  ) : (
+                    <SelectValue placeholder="Select chain" />
+                  )}
                 </SelectTrigger>
                 <SelectContent>
                   {CHAINS.map((c) => (
-                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                    <SelectItem key={c.value} value={c.value}>
+                      <div className="flex items-center gap-2">
+                        {c.icon ? (
+                          <img src={c.icon} className="w-5 h-5 rounded-full" alt="" />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-foreground">
+                            {c.label.slice(0, 1)}
+                          </div>
+                        )}
+                        <span>{c.label}</span>
+                      </div>
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>

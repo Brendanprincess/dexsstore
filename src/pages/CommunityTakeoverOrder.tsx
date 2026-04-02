@@ -8,14 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { sendTelegramNotification } from "@/lib/telegram";
-
-const CHAINS = [
-  { value: "solana", label: "Solana" },
-  { value: "ethereum", label: "Ethereum" },
-  { value: "bsc", label: "BNB Chain" },
-  { value: "base", label: "Base" },
-  { value: "arbitrum", label: "Arbitrum" },
-];
+import { CHAINS } from "@/lib/chains";
 
 const LINK_BUTTONS = [
   { key: "website", label: "Add Website" },
@@ -48,6 +41,8 @@ const CommunityTakeoverOrder = () => {
   const [check1, setCheck1] = useState(false);
   const [check2, setCheck2] = useState(false);
   const [check3, setCheck3] = useState(false);
+
+  const selectedChain = CHAINS.find((c) => c.value === chain) || null;
 
   const toggleLinkField = (key: string) => {
     if (activeLinkFields.includes(key)) {
@@ -141,11 +136,35 @@ const CommunityTakeoverOrder = () => {
                 sendTelegramNotification(`<b>User Action:</b> Selected chain <b>${val}</b> (Community Takeover)`);
               }}>
                 <SelectTrigger className="bg-secondary border-border text-foreground">
-                  <SelectValue placeholder="Select chain" />
+                  {selectedChain ? (
+                    <div className="flex items-center gap-2">
+                      {selectedChain.icon ? (
+                        <img src={selectedChain.icon} className="w-5 h-5 rounded-full" alt="" />
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-foreground">
+                          {selectedChain.label.slice(0, 1)}
+                        </div>
+                      )}
+                      <span>{selectedChain.label}</span>
+                    </div>
+                  ) : (
+                    <SelectValue placeholder="Select chain" />
+                  )}
                 </SelectTrigger>
                 <SelectContent>
                   {CHAINS.map((c) => (
-                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                    <SelectItem key={c.value} value={c.value}>
+                      <div className="flex items-center gap-2">
+                        {c.icon ? (
+                          <img src={c.icon} className="w-5 h-5 rounded-full" alt="" />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-foreground">
+                            {c.label.slice(0, 1)}
+                          </div>
+                        )}
+                        <span>{c.label}</span>
+                      </div>
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
