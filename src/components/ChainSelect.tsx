@@ -46,13 +46,13 @@ const ChainSelect = ({ value, onValueChange, placeholder = "Select chain", class
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        side="bottom"
+        side="top"
         sideOffset={6}
         className="w-[var(--radix-popover-trigger-width)] p-0 rounded-xl border border-[#223248] bg-[#050b16] shadow-2xl overflow-hidden"
       >
         <Command className="bg-transparent">
           <CommandInput placeholder="Search chain..." />
-          <CommandList className="max-h-[360px]">
+          <CommandList className="max-h-[min(360px,var(--radix-popover-content-available-height))]">
             <CommandEmpty>No chains found.</CommandEmpty>
             <CommandGroup className="p-2">
               {CHAINS.map((c) => {
