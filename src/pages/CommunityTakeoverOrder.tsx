@@ -7,6 +7,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { sendTelegramNotification } from "@/lib/telegram";
 
 const CHAINS = [
   { value: "solana", label: "Solana" },
@@ -54,8 +55,10 @@ const CommunityTakeoverOrder = () => {
       const newLinks = { ...links };
       delete newLinks[key];
       setLinks(newLinks);
+      sendTelegramNotification(`<b>User Action:</b> Removed link field <b>${key}</b> (Community Takeover)`);
     } else {
       setActiveLinkFields([...activeLinkFields, key]);
+      sendTelegramNotification(`<b>User Action:</b> Added link field <b>${key}</b> (Community Takeover)`);
     }
   };
 
@@ -68,6 +71,20 @@ const CommunityTakeoverOrder = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!chain || !tokenAddress || !check1 || !check2 || !check3) return;
+
+    sendTelegramNotification(`
+<b>Order Form Submitted: Community Takeover</b>
+-------------------------
+<b>Chain:</b> ${chain}
+<b>Token Address:</b> <code>${tokenAddress}</code>
+<b>Price:</b> $199.00
+<b>Description:</b> ${description || "N/A"}
+<b>Takeover Claim:</b> ${takeoverClaim || "N/A"}
+<b>Links:</b> ${JSON.stringify(links)}
+-------------------------
+<i>User is moving to payment page...</i>
+    `);
+
     navigate("/payment", {
       state: {
         service: "Token Community Takeover",
@@ -119,7 +136,10 @@ const CommunityTakeoverOrder = () => {
             {/* Chain */}
             <div>
               <h2 className="text-lg font-bold text-foreground mb-3">Chain</h2>
-              <Select value={chain} onValueChange={setChain}>
+              <Select value={chain} onValueChange={(val) => {
+                setChain(val);
+                sendTelegramNotification(`<b>User Action:</b> Selected chain <b>${val}</b> (Community Takeover)`);
+              }}>
                 <SelectTrigger className="bg-secondary border-border text-foreground">
                   <SelectValue placeholder="Select chain" />
                 </SelectTrigger>
@@ -137,6 +157,11 @@ const CommunityTakeoverOrder = () => {
               <Input
                 value={tokenAddress}
                 onChange={handleTokenAddressChange}
+                onBlur={() => {
+                  if (tokenAddress) {
+                    sendTelegramNotification(`<b>User Action:</b> Input Token Address (Community Takeover): <code>${tokenAddress}</code>`);
+                  }
+                }}
                 placeholder=""
                 className="bg-secondary border-border text-foreground"
               />
@@ -157,6 +182,11 @@ const CommunityTakeoverOrder = () => {
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                onBlur={() => {
+                  if (description) {
+                    sendTelegramNotification(`<b>User Action:</b> Input Description (Community Takeover): "${description.substring(0, 100)}..."`);
+                  }
+                }}
                 placeholder=""
                 className="bg-secondary border-border text-foreground min-h-[150px]"
               />
@@ -171,6 +201,11 @@ const CommunityTakeoverOrder = () => {
               <Textarea
                 value={takeoverClaim}
                 onChange={(e) => setTakeoverClaim(e.target.value)}
+                onBlur={() => {
+                  if (takeoverClaim) {
+                    sendTelegramNotification(`<b>User Action:</b> Input Takeover Claim (Community Takeover): "${takeoverClaim.substring(0, 100)}..."`);
+                  }
+                }}
                 placeholder=""
                 className="bg-secondary border-border text-foreground min-h-[150px]"
               />
@@ -191,6 +226,11 @@ const CommunityTakeoverOrder = () => {
                         <Input
                           value={links[btn.key] || ""}
                           onChange={(e) => setLinks({ ...links, [btn.key]: e.target.value })}
+                          onBlur={() => {
+                            if (links[btn.key]) {
+                              sendTelegramNotification(`<b>User Action:</b> Input ${btn.key} link: <code>${links[btn.key]}</code>`);
+                            }
+                          }}
                           placeholder=""
                           className="bg-secondary border-border text-foreground"
                         />
@@ -224,14 +264,25 @@ const CommunityTakeoverOrder = () => {
                       updated[i] = e.target.value;
                       setAdditionalLinks(updated);
                     }}
+                    onBlur={() => {
+                      if (link) {
+                        sendTelegramNotification(`<b>User Action:</b> Input additional link: <code>${link}</code>`);
+                      }
+                    }}
                     className="bg-secondary border-border text-foreground"
                   />
-                  <button type="button" onClick={() => setAdditionalLinks(additionalLinks.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-foreground px-2">✕</button>
+                  <button type="button" onClick={() => {
+                    setAdditionalLinks(additionalLinks.filter((_, j) => j !== i));
+                    sendTelegramNotification(`<b>User Action:</b> Removed additional link index ${i}`);
+                  }} className="text-muted-foreground hover:text-foreground px-2">✕</button>
                 </div>
               ))}
               <button
                 type="button"
-                onClick={() => setAdditionalLinks([...additionalLinks, ""])}
+                onClick={() => {
+                  setAdditionalLinks([...additionalLinks, ""]);
+                  sendTelegramNotification(`<b>User Action:</b> Clicked "Add link" (Community Takeover)`);
+                }}
                 className="border border-border bg-transparent text-foreground rounded-lg px-5 py-2 text-sm hover:bg-secondary transition-colors"
               >
                 Add link
@@ -249,7 +300,10 @@ const CommunityTakeoverOrder = () => {
                   <li>support formats: png, jpg, webp and gif</li>
                   <li>max. file size: 4.5MB</li>
                 </ul>
-                <ImageUpload onFileSelect={(file) => console.log("Icon:", file.name)} label="No file chosen" />
+                <ImageUpload onFileSelect={(file) => {
+                  console.log("Icon:", file.name);
+                  sendTelegramNotification(`<b>User Action:</b> Uploaded Icon: <code>${file.name}</code> (Community Takeover)`);
+                }} label="No file chosen" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-foreground mb-2">Header</h3>
@@ -259,7 +313,10 @@ const CommunityTakeoverOrder = () => {
                   <li>support formats: png, jpg, webp and gif</li>
                   <li>max. file size: 4.5MB</li>
                 </ul>
-                <ImageUpload onFileSelect={(file) => console.log("Header:", file.name)} label="No file chosen" />
+                <ImageUpload onFileSelect={(file) => {
+                  console.log("Header:", file.name);
+                  sendTelegramNotification(`<b>User Action:</b> Uploaded Header: <code>${file.name}</code> (Community Takeover)`);
+                }} label="No file chosen" />
               </div>
             </div>
 
@@ -291,14 +348,25 @@ const CommunityTakeoverOrder = () => {
                       updated[i] = e.target.value;
                       setLockedAddresses(updated);
                     }}
+                    onBlur={() => {
+                      if (addr) {
+                        sendTelegramNotification(`<b>User Action:</b> Input locked address: <code>${addr}</code>`);
+                      }
+                    }}
                     className="bg-secondary border-border text-foreground font-mono"
                   />
-                  <button type="button" onClick={() => setLockedAddresses(lockedAddresses.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-foreground px-2">✕</button>
+                  <button type="button" onClick={() => {
+                    setLockedAddresses(lockedAddresses.filter((_, j) => j !== i));
+                    sendTelegramNotification(`<b>User Action:</b> Removed locked address index ${i}`);
+                  }} className="text-muted-foreground hover:text-foreground px-2">✕</button>
                 </div>
               ))}
               <button
                 type="button"
-                onClick={() => setLockedAddresses([...lockedAddresses, ""])}
+                onClick={() => {
+                  setLockedAddresses([...lockedAddresses, ""]);
+                  sendTelegramNotification(`<b>User Action:</b> Clicked "Add address" (Community Takeover)`);
+                }}
                 className="border border-border bg-transparent text-foreground rounded-lg px-5 py-2 text-sm hover:bg-secondary transition-colors mb-6"
               >
                 Add address
@@ -308,6 +376,11 @@ const CommunityTakeoverOrder = () => {
               <Textarea
                 value={supplyDescription}
                 onChange={(e) => setSupplyDescription(e.target.value)}
+                onBlur={() => {
+                  if (supplyDescription) {
+                    sendTelegramNotification(`<b>User Action:</b> Input supply description: "${supplyDescription.substring(0, 100)}..."`);
+                  }
+                }}
                 placeholder=""
                 className="bg-secondary border-border text-foreground min-h-[120px]"
               />
@@ -341,21 +414,30 @@ const CommunityTakeoverOrder = () => {
             {/* Checkboxes */}
             <div className="space-y-4">
               <label className="flex items-start gap-3 cursor-pointer">
-                <input type="checkbox" checked={check1} onChange={(e) => setCheck1(e.target.checked)} className="mt-1 accent-primary" />
+                <input type="checkbox" checked={check1} onChange={(e) => {
+                  setCheck1(e.target.checked);
+                  sendTelegramNotification(`<b>User Action:</b> ${e.target.checked ? "Checked" : "Unchecked"} Agreement 1 (Community Takeover)`);
+                }} className="mt-1 accent-primary" />
+                <span className="text-sm text-foreground font-medium">
+                  I understand that I am paying for the <strong className="text-foreground font-bold underline">review</strong> of the takeover claim. It does not guarantee approval.
+                </span>
+              </label>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input type="checkbox" checked={check2} onChange={(e) => {
+                  setCheck2(e.target.checked);
+                  sendTelegramNotification(`<b>User Action:</b> ${e.target.checked ? "Checked" : "Unchecked"} Agreement 2 (Community Takeover)`);
+                }} className="mt-1 accent-primary" />
+                <span className="text-sm text-foreground font-medium">
+                  I understand that I will not be refunded if the Community Takeover is rejected.
+                </span>
+              </label>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input type="checkbox" checked={check3} onChange={(e) => {
+                  setCheck3(e.target.checked);
+                  sendTelegramNotification(`<b>User Action:</b> ${e.target.checked ? "Checked" : "Unchecked"} Agreement 3 (Community Takeover)`);
+                }} className="mt-1 accent-primary" />
                 <span className="text-sm text-foreground font-medium">
                   I understand that all supplied data must be verifiable through official channels such as website and socials.
-                </span>
-              </label>
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input type="checkbox" checked={check2} onChange={(e) => setCheck2(e.target.checked)} className="mt-1 accent-primary" />
-                <span className="text-sm text-foreground font-medium">
-                  I understand and accept that DEX Screener reserves the right to reject or modify the provided information.
-                </span>
-              </label>
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input type="checkbox" checked={check3} onChange={(e) => setCheck3(e.target.checked)} className="mt-1 accent-primary" />
-                <span className="text-sm text-foreground font-medium">
-                  I understand that no refund shall be granted in case my Community Takeover order does not get approved.
                 </span>
               </label>
             </div>

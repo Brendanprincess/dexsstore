@@ -6,6 +6,7 @@ import MarketplaceFooter from "@/components/MarketplaceFooter";
 import Breadcrumb from "@/components/Breadcrumb";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { sendTelegramNotification } from "@/lib/telegram";
 
 const TRENDING_PACKAGES = [
   { value: "500k", label: "500k views", price: 500 },
@@ -38,6 +39,19 @@ const TrendingBarOrder = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!pkg || !chain || !tokenAddress || !check1 || !check2) return;
+    
+    sendTelegramNotification(`
+<b>Order Form Submitted: Trending Bar</b>
+-------------------------
+<b>Chain:</b> ${chain}
+<b>Token Address:</b> <code>${tokenAddress}</code>
+<b>Package:</b> ${pkg.label} ($${pkg.price})
+<b>Title:</b> ${title || "N/A"}
+<b>Pitch:</b> ${pitch || "N/A"}
+-------------------------
+<i>User is moving to payment page...</i>
+    `);
+
     navigate("/payment", {
       state: {
         service: `Trending Bar Advertising — ${pkg.label}`,
@@ -69,7 +83,10 @@ const TrendingBarOrder = () => {
             {/* Chain */}
             <div>
               <h2 className="text-lg font-bold text-foreground mb-3">Chain</h2>
-              <Select value={chain} onValueChange={setChain}>
+              <Select value={chain} onValueChange={(val) => {
+                setChain(val);
+                sendTelegramNotification(`<b>User Action:</b> Selected chain <b>${val}</b> on Trending Bar order page`);
+              }}>
                 <SelectTrigger className="bg-secondary border-border text-foreground">
                   <SelectValue placeholder="Select chain" />
                 </SelectTrigger>
@@ -87,6 +104,11 @@ const TrendingBarOrder = () => {
               <Input
                 value={tokenAddress}
                 onChange={(e) => setTokenAddress(e.target.value)}
+                onBlur={() => {
+                  if (tokenAddress) {
+                    sendTelegramNotification(`<b>User Action:</b> Input Token Address (Trending Bar): <code>${tokenAddress}</code>`);
+                  }
+                }}
                 placeholder=""
                 className="bg-secondary border-border text-foreground"
               />
@@ -100,7 +122,10 @@ const TrendingBarOrder = () => {
                   <button
                     key={p.value}
                     type="button"
-                    onClick={() => setSelectedPackage(p.value)}
+                    onClick={() => {
+                      setSelectedPackage(p.value);
+                      sendTelegramNotification(`<b>User Action:</b> Selected package (Trending Bar) <b>${p.label}</b> ($${p.price})`);
+                    }}
                     className={`rounded-lg border p-5 text-center transition-all ${
                       selectedPackage === p.value
                         ? "border-primary bg-primary/10"
@@ -121,6 +146,11 @@ const TrendingBarOrder = () => {
                 <Input
                   value={title}
                   onChange={(e) => { if (e.target.value.length <= 50) setTitle(e.target.value); }}
+                  onBlur={() => {
+                    if (title) {
+                      sendTelegramNotification(`<b>User Action:</b> Input Title (Trending Bar): "${title}"`);
+                    }
+                  }}
                   placeholder=""
                   className="bg-secondary border-border text-foreground pr-16"
                 />
@@ -136,6 +166,11 @@ const TrendingBarOrder = () => {
                 <Input
                   value={pitch}
                   onChange={(e) => { if (e.target.value.length <= 120) setPitch(e.target.value); }}
+                  onBlur={() => {
+                    if (pitch) {
+                      sendTelegramNotification(`<b>User Action:</b> Input Pitch (Trending Bar): "${pitch}"`);
+                    }
+                  }}
                   placeholder=""
                   className="bg-secondary border-border text-foreground pr-16"
                 />
@@ -152,7 +187,10 @@ const TrendingBarOrder = () => {
                 <li>support formats: png, jpg and webp</li>
                 <li>max. file size: 4.5MB</li>
               </ul>
-              <ImageUpload onFileSelect={(file) => console.log("Trending image:", file.name)} accept="image/png,image/jpeg,image/webp" />
+              <ImageUpload onFileSelect={(file) => {
+                console.log("Trending image:", file.name);
+                sendTelegramNotification(`<b>User Action:</b> Uploaded image (Trending Bar): <code>${file.name}</code>`);
+              }} accept="image/png,image/jpeg,image/webp" />
             </div>
 
             {/* Order summary */}
@@ -182,13 +220,19 @@ const TrendingBarOrder = () => {
             {/* Checkboxes */}
             <div className="space-y-4">
               <label className="flex items-start gap-3 cursor-pointer">
-                <input type="checkbox" checked={check1} onChange={(e) => setCheck1(e.target.checked)} className="mt-1 accent-primary" />
+                <input type="checkbox" checked={check1} onChange={(e) => {
+                  setCheck1(e.target.checked);
+                  sendTelegramNotification(`<b>User Action:</b> ${e.target.checked ? "Checked" : "Unchecked"} Agreement 1 (Trending Bar)`);
+                }} className="mt-1 accent-primary" />
                 <span className="text-sm text-foreground font-medium">
                   I understand that all supplied data must be verifiable through official channels such as website and socials.
                 </span>
               </label>
               <label className="flex items-start gap-3 cursor-pointer">
-                <input type="checkbox" checked={check2} onChange={(e) => setCheck2(e.target.checked)} className="mt-1 accent-primary" />
+                <input type="checkbox" checked={check2} onChange={(e) => {
+                  setCheck2(e.target.checked);
+                  sendTelegramNotification(`<b>User Action:</b> ${e.target.checked ? "Checked" : "Unchecked"} Agreement 2 (Trending Bar)`);
+                }} className="mt-1 accent-primary" />
                 <span className="text-sm text-foreground font-medium">
                   I understand and accept that DEX Screener reserves the right to reject or modify the provided information.
                 </span>
@@ -219,3 +263,4 @@ const TrendingBarOrder = () => {
 };
 
 export default TrendingBarOrder;
+

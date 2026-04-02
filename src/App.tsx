@@ -22,7 +22,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter basename="/dexsstore">
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/product/token-info" element={<TokenInfoProduct />} />

@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Wallet keys and sensitive data
+wallets.json
+wallets.example.json
+.env
+.env.local
+.env.*.local
