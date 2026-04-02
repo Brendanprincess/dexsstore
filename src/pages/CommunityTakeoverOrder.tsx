@@ -27,6 +27,7 @@ const CommunityTakeoverOrder = () => {
   const [chain, setChain] = useState(searchParams.get("chainId") || "");
   const [tokenAddress, setTokenAddress] = useState(searchParams.get("tokenAddress") || "");
   const [tokenValid, setTokenValid] = useState(!!searchParams.get("tokenAddress"));
+  const discountRate = 0.1;
 
   const [description, setDescription] = useState("");
   const [takeoverClaim, setTakeoverClaim] = useState("");
@@ -63,13 +64,15 @@ const CommunityTakeoverOrder = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!chain || !tokenAddress || !check1 || !check2 || !check3) return;
+    const originalPrice = 199.0;
+    const discountedPrice = Number((originalPrice * (1 - discountRate)).toFixed(2));
 
     sendTelegramNotification(`
 <b>Order Form Submitted: Community Takeover</b>
 -------------------------
 <b>Chain:</b> ${chain}
 <b>Token Address:</b> <code>${tokenAddress}</code>
-<b>Price:</b> $199.00
+<b>Price:</b> $${discountedPrice.toFixed(2)}
 <b>Description:</b> ${description || "N/A"}
 <b>Takeover Claim:</b> ${takeoverClaim || "N/A"}
 <b>Links:</b> ${JSON.stringify(links)}
@@ -80,7 +83,8 @@ const CommunityTakeoverOrder = () => {
     navigate("/payment", {
       state: {
         service: "Token Community Takeover",
-        price: 199.00,
+        price: discountedPrice,
+        originalPrice,
         details: { chain, tokenAddress, description, takeoverClaim, links, additionalLinks, lockedAddresses, supplyDescription },
       },
     });
@@ -390,7 +394,12 @@ const CommunityTakeoverOrder = () => {
                       </p>
                     </div>
                     <span className="text-foreground font-medium whitespace-nowrap ml-4">
-                      <span className="line-through text-muted-foreground mr-2">$499.00</span>$199.00
+                      <span className="flex flex-col items-end leading-tight">
+                        <span className="text-[11px] text-green-400 font-semibold">10% off</span>
+                        <span>
+                          <span className="line-through text-muted-foreground mr-2">$199.00</span>$179.10
+                        </span>
+                      </span>
                     </span>
                   </div>
                 </div>

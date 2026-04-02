@@ -5,6 +5,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import CryptoIcons from "@/components/CryptoIcons";
 
 const TokenInfoProduct = () => {
+  const original = 299;
   const discounted = (value: number) => (value * 0.9).toFixed(2);
   return (
     <div className="min-h-screen bg-page-gradient">
@@ -26,7 +27,10 @@ const TokenInfoProduct = () => {
             to="/product/token-info/order"
             className="btn-learn-more px-8 py-3 text-base"
           >
-            Order Now -&nbsp; {`$${discounted(299)}`}
+            Order Now -&nbsp;{" "}
+            <span className="line-through opacity-60">{`$${original.toFixed(2)}`}</span>{" "}
+            {`$${discounted(original)}`}{" "}
+            <span className="text-green-200 text-sm font-semibold">10% off</span>
           </Link>
 
           <CryptoIcons text="Pay with crypto or credit card" />
@@ -106,7 +110,10 @@ const TokenInfoProduct = () => {
               to="/product/token-info/order"
               className="btn-learn-more px-8 py-3 text-base"
             >
-              Order Now -&nbsp; {`$${discounted(299)}`}
+              Order Now -&nbsp;{" "}
+              <span className="line-through opacity-60">{`$${original.toFixed(2)}`}</span>{" "}
+              {`$${discounted(original)}`}{" "}
+              <span className="text-green-200 text-sm font-semibold">10% off</span>
             </Link>
           </div>
         </div>

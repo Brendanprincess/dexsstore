@@ -5,6 +5,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import CryptoIcons from "@/components/CryptoIcons";
 
 const TrendingBarProduct = () => {
+  const originalFrom = 2000;
   const discountedFrom = (value: number) => (value * 0.9).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return (
     <div className="min-h-screen bg-page-gradient">
@@ -23,7 +24,10 @@ const TrendingBarProduct = () => {
           </p>
 
           <Link to="/product/trending-bar-ad/order" className="btn-learn-more px-8 py-3 text-base">
-            Order Now -&nbsp; from {`$${discountedFrom(2000)}`}
+            Order Now -&nbsp; from{" "}
+            <span className="line-through opacity-60">{`$${originalFrom.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</span>{" "}
+            {`$${discountedFrom(originalFrom)}`}{" "}
+            <span className="text-green-200 text-sm font-semibold">10% off</span>
           </Link>
 
           <CryptoIcons text="Pay with crypto or credit card" />
@@ -85,7 +89,10 @@ const TrendingBarProduct = () => {
           {/* Bottom CTA */}
           <div className="text-center pt-4">
             <Link to="/product/trending-bar-ad/order" className="btn-learn-more px-8 py-3 text-base">
-              Order Now -&nbsp; from {`$${discountedFrom(2000)}`}
+              Order Now -&nbsp; from{" "}
+              <span className="line-through opacity-60">{`$${originalFrom.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</span>{" "}
+              {`$${discountedFrom(originalFrom)}`}{" "}
+              <span className="text-green-200 text-sm font-semibold">10% off</span>
             </Link>
           </div>
         </div>

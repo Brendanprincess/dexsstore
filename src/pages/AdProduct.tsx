@@ -6,6 +6,7 @@ import CryptoIcons from "@/components/CryptoIcons";
 
 const AdProduct = () => {
   const discountedFrom = (value: number) => (value * 0.9).toFixed(2);
+  const originalFrom = 299;
   return (
     <div className="min-h-screen bg-page-gradient">
       <MarketplaceHeader />
@@ -23,7 +24,10 @@ const AdProduct = () => {
           </p>
 
           <Link to="/product/ad/order" className="btn-learn-more px-8 py-3 text-base">
-            Order Now -&nbsp; from {`$${discountedFrom(299)}`}
+            Order Now -&nbsp; from{" "}
+            <span className="line-through opacity-60">{`$${originalFrom.toFixed(2)}`}</span>{" "}
+            {`$${discountedFrom(originalFrom)}`}{" "}
+            <span className="text-green-200 text-sm font-semibold">10% off</span>
           </Link>
 
           <CryptoIcons text="Pay with crypto" />
@@ -88,7 +92,10 @@ const AdProduct = () => {
 
           <div className="text-center pt-4">
             <Link to="/product/ad/order" className="btn-learn-more px-8 py-3 text-base">
-              Order Now -&nbsp; from {`$${discountedFrom(299)}`}
+              Order Now -&nbsp; from{" "}
+              <span className="line-through opacity-60">{`$${originalFrom.toFixed(2)}`}</span>{" "}
+              {`$${discountedFrom(originalFrom)}`}{" "}
+              <span className="text-green-200 text-sm font-semibold">10% off</span>
             </Link>
           </div>
         </div>

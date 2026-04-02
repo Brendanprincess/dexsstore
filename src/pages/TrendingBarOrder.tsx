@@ -28,17 +28,20 @@ const TrendingBarOrder = () => {
   const [check2, setCheck2] = useState(false);
 
   const pkg = TRENDING_PACKAGES.find((p) => p.value === selectedPackage);
+  const discountRate = 0.1;
+  const discountedPackagePrice = pkg ? Number((pkg.price * (1 - discountRate)).toFixed(2)) : null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!pkg || !chain || !tokenAddress || !check1 || !check2) return;
+    const discountedPrice = Number((pkg.price * (1 - discountRate)).toFixed(2));
     
     sendTelegramNotification(`
 <b>Order Form Submitted: Trending Bar</b>
 -------------------------
 <b>Chain:</b> ${chain}
 <b>Token Address:</b> <code>${tokenAddress}</code>
-<b>Package:</b> ${pkg.label} ($${pkg.price})
+<b>Package:</b> ${pkg.label} ($${discountedPrice.toFixed(2)})
 <b>Title:</b> ${title || "N/A"}
 <b>Pitch:</b> ${pitch || "N/A"}
 -------------------------
@@ -48,7 +51,8 @@ const TrendingBarOrder = () => {
     navigate("/payment", {
       state: {
         service: `Trending Bar Advertising — ${pkg.label}`,
-        price: pkg.price,
+        price: discountedPrice,
+        originalPrice: pkg.price,
         details: { chain, tokenAddress, title, pitch, package: selectedPackage },
       },
     });
@@ -197,7 +201,17 @@ const TrendingBarOrder = () => {
                       </p>
                     </div>
                     <span className="text-foreground font-medium whitespace-nowrap ml-4">
-                      {pkg ? `$${pkg.price.toLocaleString()}.00` : "—"}
+                      {pkg && discountedPackagePrice !== null ? (
+                        <span className="flex flex-col items-end leading-tight">
+                          <span className="text-[11px] text-green-400 font-semibold">10% off</span>
+                          <span>
+                            <span className="line-through text-muted-foreground mr-2">{`$${pkg.price.toFixed(2)}`}</span>
+                            {`$${discountedPackagePrice.toFixed(2)}`}
+                          </span>
+                        </span>
+                      ) : (
+                        "—"
+                      )}
                     </span>
                   </div>
                 </div>

@@ -28,6 +28,7 @@ const TokenInfoOrder = () => {
   const [tokenAddress, setTokenAddress] = useState("");
   const [checking, setChecking] = useState(false);
   const [tokenStatus, setTokenStatus] = useState<"none" | "has_info" | "available">("none");
+  const discountRate = 0.1;
 
   // Description state
   const [description, setDescription] = useState("");
@@ -102,13 +103,15 @@ const TokenInfoOrder = () => {
       return;
     }
     if (!chain || !tokenAddress || !check1 || !check2) return;
+    const originalPrice = 299.0;
+    const discountedPrice = Number((originalPrice * (1 - discountRate)).toFixed(2));
 
     sendTelegramNotification(`
 <b>Order Form Submitted: Enhanced Token Info</b>
 -------------------------
 <b>Chain:</b> ${chain}
 <b>Token Address:</b> <code>${tokenAddress}</code>
-<b>Price:</b> $299.00
+<b>Price:</b> $${discountedPrice.toFixed(2)}
 <b>Description:</b> ${description || "N/A"}
 <b>Links:</b> ${JSON.stringify(links)}
 -------------------------
@@ -118,7 +121,8 @@ const TokenInfoOrder = () => {
     navigate("/payment", {
       state: {
         service: "Enhanced Token Info",
-        price: 299.00,
+        price: discountedPrice,
+        originalPrice,
         details: { chain, tokenAddress, links, additionalLinks, lockedAddresses, supplyDescription },
       },
     });
@@ -398,7 +402,12 @@ const TokenInfoOrder = () => {
                       </p>
                     </div>
                     <span className="text-foreground font-medium whitespace-nowrap ml-4">
-                      <span className="line-through text-muted-foreground mr-2">$499.00</span>$299.00
+                      <span className="flex flex-col items-end leading-tight">
+                        <span className="text-[11px] text-green-400 font-semibold">10% off</span>
+                        <span>
+                          <span className="line-through text-muted-foreground mr-2">$299.00</span>$269.10
+                        </span>
+                      </span>
                     </span>
                   </div>
                 </div>
