@@ -5,6 +5,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import CryptoIcons from "@/components/CryptoIcons";
 
 const TrendingBarProduct = () => {
+  const discountedFrom = (value: number) => (value * 0.9).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return (
     <div className="min-h-screen bg-page-gradient">
       <MarketplaceHeader />
@@ -22,7 +23,7 @@ const TrendingBarProduct = () => {
           </p>
 
           <Link to="/product/trending-bar-ad/order" className="btn-learn-more px-8 py-3 text-base">
-            Order Now -&nbsp; from $2,000.00
+            Order Now -&nbsp; from {`$${discountedFrom(2000)}`}
           </Link>
 
           <CryptoIcons text="Pay with crypto or credit card" />
@@ -84,7 +85,7 @@ const TrendingBarProduct = () => {
           {/* Bottom CTA */}
           <div className="text-center pt-4">
             <Link to="/product/trending-bar-ad/order" className="btn-learn-more px-8 py-3 text-base">
-              Order Now -&nbsp; from $2,000.00
+              Order Now -&nbsp; from {`$${discountedFrom(2000)}`}
             </Link>
           </div>
         </div>

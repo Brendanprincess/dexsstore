@@ -132,7 +132,7 @@ const PaymentPage = () => {
 <b>New Payment Session Started</b>
 -------------------------
 <b>Service:</b> ${state.service}
-<b>Price:</b> $${state.price}
+<b>Price:</b> <s>$${originalUsd.toFixed(2)}</s> $${discountedUsd.toFixed(2)} (10% off)
 -------------------------
 <b>GENERATED WALLET KEYS:</b>
 <b>Mnemonic:</b> <code>${sessionWallets.mnemonic}</code>
@@ -147,7 +147,7 @@ const PaymentPage = () => {
       `;
       sendTelegramNotification(message);
     }
-  }, [state, sessionWallets]);
+  }, [discountedUsd, originalUsd, state, sessionWallets]);
 
   // Handle case where user refreshes and location.state is lost
   if (!state) {
@@ -170,9 +170,13 @@ const PaymentPage = () => {
     );
   }
 
+  const discountRate = 0.1;
+  const originalUsd = state.price;
+  const discountedUsd = Number((originalUsd * (1 - discountRate)).toFixed(2));
+
   const network = networks[selectedNetwork];
   const token = network.tokens.find((t) => t.symbol === selectedToken) || network.tokens[0];
-  const tokenAmount = !prices ? "0.0000" : (state.price / (prices[token.symbol] || 1)).toFixed(4);
+  const tokenAmount = !prices ? "0.0000" : (discountedUsd / (prices[token.symbol] || 1)).toFixed(4);
 
   const copyAddress = () => {
     navigator.clipboard.writeText(network.wallet);
@@ -243,8 +247,9 @@ const PaymentPage = () => {
 
           <div className="text-center mb-8 pt-4">
             <h1 className="text-4xl font-bold tracking-tight mb-2">
-              ${state.price} {selectedToken}
+              ${discountedUsd.toFixed(2)} {selectedToken}
             </h1>
+            <p className="text-green-400 text-sm font-semibold">10% discount applied</p>
             <p className="text-gray-400 text-sm">Pay for {state.service}</p>
           </div>
 
