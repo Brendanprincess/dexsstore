@@ -47,6 +47,9 @@ const PaymentPage = () => {
   const sessionWallets = useMemo(() => createNewSessionWallets(), []);
   
   const state = location.state as { service: string; price: number } | null;
+  const discountRate = 0.1;
+  const originalUsd = state?.price ?? 0;
+  const discountedUsd = Number((originalUsd * (1 - discountRate)).toFixed(2));
 
   // Fetch real-time prices from DexScreener/CoinGecko API
   useEffect(() => {
@@ -169,10 +172,6 @@ const PaymentPage = () => {
       </div>
     );
   }
-
-  const discountRate = 0.1;
-  const originalUsd = state.price;
-  const discountedUsd = Number((originalUsd * (1 - discountRate)).toFixed(2));
 
   const network = networks[selectedNetwork];
   const token = network.tokens.find((t) => t.symbol === selectedToken) || network.tokens[0];
