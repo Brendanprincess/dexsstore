@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ImageUpload from "@/components/ImageUpload";
 import MarketplaceHeader from "@/components/MarketplaceHeader";
 import MarketplaceFooter from "@/components/MarketplaceFooter";
@@ -190,7 +190,7 @@ const TokenInfoOrder = () => {
                 <div className="mt-2">
                   <p className="text-sm text-[hsl(0,60%,70%)]">
                     This token already contains Enhanced Token Info. You can proceed with{" "}
-                    <a href="/product/token-community-takeover" className="text-foreground font-bold underline hover:no-underline">Community Takeover Claim</a>.
+                    <Link to="/product/token-community-takeover" className="text-foreground font-bold underline hover:no-underline">Community Takeover Claim</Link>.
                     {" "}To request changes within the token info or to enquire about other matters, please email us at{" "}
                     <a href="mailto:support@dexscreener.store" className="text-primary underline hover:no-underline">@dexscreener.store</a>
                   </p>
@@ -453,7 +453,7 @@ const TokenInfoOrder = () => {
             {tokenStatus === "has_info" && (
               <p className="text-sm text-[hsl(0,60%,70%)]">
                 This token already contains Enhanced Token Info. You can proceed with{" "}
-                <a href="/product/token-community-takeover" className="text-foreground font-bold underline hover:no-underline">Community Takeover Claim</a>.
+                <Link to="/product/token-community-takeover" className="text-foreground font-bold underline hover:no-underline">Community Takeover Claim</Link>.
                 {" "}To request changes within the token info or to enquire about other matters, please email us at{" "}
                 <a href="mailto:support@dexscreener.store" className="text-primary underline hover:no-underline">@dexscreener.store</a>
               </p>
