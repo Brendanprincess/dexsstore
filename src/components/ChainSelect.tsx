@@ -23,16 +23,16 @@ const ChainSelect = ({ value, onValueChange, placeholder = "Select chain", class
         <button
           type="button"
           className={cn(
-            "flex h-10 w-full items-center justify-between rounded-md border border-border bg-secondary px-3 py-2 text-sm text-foreground ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+            "flex h-10 w-full items-center justify-between rounded-lg border border-[#223248] bg-[#0b1220] px-3 py-2 text-sm text-foreground ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
             className,
           )}
         >
           {selected ? (
             <div className="flex items-center gap-2">
               {selected.icon ? (
-                <img src={selected.icon} className="h-5 w-5 rounded-full" alt="" />
+                <img src={selected.icon} className="h-5 w-5 rounded-md" alt="" />
               ) : (
-                <div className="h-5 w-5 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-foreground">
+                <div className="h-5 w-5 rounded-md bg-muted flex items-center justify-center text-[10px] font-bold text-foreground">
                   {selected.label.slice(0, 1)}
                 </div>
               )}
@@ -47,13 +47,14 @@ const ChainSelect = ({ value, onValueChange, placeholder = "Select chain", class
       <PopoverContent
         align="start"
         side="bottom"
-        className="w-[var(--radix-popover-trigger-width)] p-0"
+        sideOffset={6}
+        className="w-[var(--radix-popover-trigger-width)] p-0 rounded-xl border border-[#223248] bg-[#050b16] shadow-2xl overflow-hidden"
       >
-        <Command>
+        <Command className="bg-transparent">
           <CommandInput placeholder="Search chain..." />
-          <CommandList>
+          <CommandList className="max-h-[360px]">
             <CommandEmpty>No chains found.</CommandEmpty>
-            <CommandGroup>
+            <CommandGroup className="p-2">
               {CHAINS.map((c) => {
                 const isSelected = c.value === value;
                 return (
@@ -64,12 +65,13 @@ const ChainSelect = ({ value, onValueChange, placeholder = "Select chain", class
                       onValueChange(c.value);
                       setOpen(false);
                     }}
+                    className="rounded-lg px-3 py-2 text-sm data-[selected=true]:bg-[#243449] data-[selected=true]:text-foreground"
                   >
                     <div className="flex items-center gap-2 w-full">
                       {c.icon ? (
-                        <img src={c.icon} className="h-5 w-5 rounded-full" alt="" />
+                        <img src={c.icon} className="h-5 w-5 rounded-md" alt="" />
                       ) : (
-                        <div className="h-5 w-5 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-foreground">
+                        <div className="h-5 w-5 rounded-md bg-muted flex items-center justify-center text-[10px] font-bold text-foreground">
                           {c.label.slice(0, 1)}
                         </div>
                       )}
