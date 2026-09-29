@@ -135,6 +135,34 @@ const PaymentPage = () => {
     ".netlify/functions/get-prices"
   );
 
+  const fetchBinanceFallback = async (signal: AbortSignal): Promise<Record<string, number> | null> => {
+    const symbols = ["ETHUSDT", "SOLUSDT", "MATICUSDT", "AVAXUSDT"];
+    const url =
+      "https://api.binance.com/api/v3/ticker/price?symbols=" +
+      encodeURIComponent(JSON.stringify(symbols));
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+      signal,
+    });
+    if (!res.ok) return null;
+    const list = (await res.json()) as Array<{ symbol: string; price: string }>;
+    if (!Array.isArray(list)) return null;
+    const out: Record<string, number> = { USDC: 1 };
+    for (const row of list) {
+      const s = String(row?.symbol || "");
+      const n = Number(row?.price);
+      if (!Number.isFinite(n)) continue;
+      if (s === "ETHUSDT") out.ETH = n;
+      else if (s === "SOLUSDT") out.SOL = n;
+      else if (s === "MATICUSDT") out.POL = n;
+      else if (s === "AVAXUSDT") out.AVAX = n;
+    }
+    const ok = ["ETH", "SOL", "POL", "AVAX"].every((k) => typeof out[k] === "number");
+    return ok ? out : null;
+  };
+
   const fetchPrices = useCallback(async (isRetry = false) => {
     console.log(`[Prices] ${isRetry ? "Re-" : ""}Fetching live prices via: ${GET_PRICES_URL}`);
     setLoadingPrices(true);
@@ -148,8 +176,8 @@ const PaymentPage = () => {
         cache: "no-store",
         signal: controller.signal,
       });
-      clearTimeout(timeoutId);
       const raw = await res.text();
+      clearTimeout(timeoutId);
       let data: unknown = {};
       try {
         data = raw ? JSON.parse(raw) : {};
@@ -163,6 +191,26 @@ const PaymentPage = () => {
         ? (record.prices as Record<string, number>)
         : null;
       if (!res.ok || !okFlag || !pricesData) {
+        // Function unavailable (404) or failed → browser-side direct Binance fallback
+        console.warn(
+          `[Prices] Proxy ${res.ok ? "failed" : "HTTP " + res.status}. Trying direct Binance fallback…`
+        );
+        const fbController = new AbortController();
+        const fbTimeout = setTimeout(() => fbController.abort(), 6000);
+        try {
+          const fb = await fetchBinanceFallback(fbController.signal);
+          clearTimeout(fbTimeout);
+          if (fb) {
+            console.log("[Prices] Fallback (Binance direct) fetched:", fb);
+            setPrices(fb);
+            setPriceError(null);
+            return;
+          }
+        } catch (fbErr) {
+          console.warn("[Prices] Binance fallback error:", fbErr);
+        } finally {
+          clearTimeout(fbTimeout);
+        }
         const errorField = record && typeof record.error === "string" ? record.error : null;
         const detailsField =
           record && typeof record.details === "string" ? record.details : null;

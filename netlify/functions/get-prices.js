@@ -32,6 +32,142 @@ const matchOrigin = (originHeader, allowedOrigins) => {
 const COINGECKO_URL =
   "https://api.coingecko.com/api/v3/simple/price?ids=ethereum,solana,matic-network,avalanche-2&vs_currencies=usd";
 
+const COINPAPRIKA_URL =
+  "https://api.coinpaprika.com/v1/tickers/eth-ethereum,sol-solana,matic-polygon,avax-avalanche?quotes=USD";
+
+const BINANCE_SYMBOLS = ["ETHUSDT", "SOLUSDT", "MATICUSDT", "AVAXUSDT"];
+const BINANCE_URL =
+  "https://api.binance.com/api/v3/ticker/price?symbols=" +
+  encodeURIComponent(JSON.stringify(BINANCE_SYMBOLS));
+
+const OKX_INSTS = ["ETH-USDT", "SOL-USDT", "MATIC-USDT", "AVAX-USDT"];
+const OKX_URL =
+  "https://www.okx.com/api/v5/market/tickers?instType=SPOT&instId=" + OKX_INSTS.join(",");
+
+const REQUIRED = ["ETH", "SOL", "POL", "AVAX"];
+
+const isRecord = (v) => v && typeof v === "object" && !Array.isArray(v);
+const numOrNull = (v) => {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string") {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+};
+
+const merge = (target, patch, sourceName) => {
+  const next = { ...target };
+  let updated = 0;
+  for (const k of REQUIRED) {
+    if (typeof next[k] !== "number") {
+      const v = numOrNull(patch[k]);
+      if (v !== null) {
+        next[k] = v;
+        updated++;
+      }
+    }
+  }
+  console.log(`[get-prices] merge(${sourceName}): +${updated} prices →`, next);
+  return next;
+};
+
+const complete = (obj) => REQUIRED.every((k) => typeof obj[k] === "number");
+
+const fetchJSON = async (url, label, timeoutMs, extraHeaders = {}) => {
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "dexsstore-netlify-function/1.0",
+        ...extraHeaders,
+      },
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      console.log(`[get-prices] ${label}: HTTP ${res.status}`);
+      return null;
+    }
+    const txt = await res.text();
+    try {
+      return JSON.parse(txt);
+    } catch (parseErr) {
+      console.log(`[get-prices] ${label}: JSON parse failed`);
+      return null;
+    }
+  } catch (err) {
+    console.log(`[get-prices] ${label}: fetch error: ${err.message}`);
+    return null;
+  } finally {
+    clearTimeout(t);
+  }
+};
+
+const tryCoinGecko = async (prices) => {
+  const d = await fetchJSON(COINGECKO_URL, "CoinGecko", 4000);
+  if (!isRecord(d)) return prices;
+  return merge(prices, {
+    ETH: d.ethereum?.usd,
+    SOL: d.solana?.usd,
+    POL: d["matic-network"]?.usd,
+    AVAX: d["avalanche-2"]?.usd,
+  }, "CoinGecko");
+};
+
+const tryCoinPaprika = async (prices) => {
+  const arr = await fetchJSON(COINPAPRIKA_URL, "CoinPaprika", 5000);
+  if (!Array.isArray(arr)) return prices;
+  const patch = {};
+  for (const row of arr) {
+    if (!isRecord(row)) continue;
+    const id = row.id;
+    const price = row?.quotes?.USD?.price;
+    if (id === "eth-ethereum") patch.ETH = price;
+    else if (id === "sol-solana") patch.SOL = price;
+    else if (id === "matic-polygon") patch.POL = price;
+    else if (id === "avax-avalanche") patch.AVAX = price;
+  }
+  return merge(prices, patch, "CoinPaprika");
+};
+
+const tryBinance = async (prices) => {
+  const rows = await fetchJSON(BINANCE_URL, "Binance", 4000);
+  const patch = {};
+  const list = Array.isArray(rows) ? rows : isRecord(rows) && rows.symbol ? [rows] : null;
+  if (!list) return prices;
+  for (const row of list) {
+    if (!isRecord(row)) continue;
+    const sym = String(row.symbol || "");
+    const p = numOrNull(row.price);
+    if (sym === "ETHUSDT") patch.ETH = p;
+    else if (sym === "SOLUSDT") patch.SOL = p;
+    else if (sym === "MATICUSDT") patch.POL = p;
+    else if (sym === "AVAXUSDT") patch.AVAX = p;
+  }
+  return merge(prices, patch, "Binance");
+};
+
+const tryOkx = async (prices) => {
+  const d = await fetchJSON(OKX_URL, "OKX", 5000);
+  const patch = {};
+  const list = isRecord(d) && Array.isArray(d.data) ? d.data : null;
+  if (!list) return prices;
+  for (const row of list) {
+    if (!isRecord(row)) continue;
+    const inst = String(row.instId || "");
+    const p = numOrNull(row.last);
+    if (inst === "ETH-USDT") patch.ETH = p;
+    else if (inst === "SOL-USDT") patch.SOL = p;
+    else if (inst === "MATIC-USDT") patch.POL = p;
+    else if (inst === "AVAX-USDT") patch.AVAX = p;
+  }
+  return merge(prices, patch, "OKX");
+};
+
 export const handler = async (event) => {
   console.log("[get-prices] Request received. Method:", event.httpMethod);
 
@@ -61,53 +197,29 @@ export const handler = async (event) => {
   }
 
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    let prices = {};
+    const sourcesTried = [];
 
-    const res = await fetch(COINGECKO_URL, {
-      method: "GET",
-      headers: {
-        "Accept": "application/json",
-        "User-Agent": "dexsstore-netlify-function/1.0",
-      },
-      cache: "no-store",
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeout);
-
-    const responseText = await res.text();
-    console.log("[get-prices] CoinGecko status:", res.status);
-
-    if (!res.ok) {
-      console.error("[get-prices] CoinGecko HTTP error:", res.status, responseText);
-      return {
-        statusCode: 502,
-        headers,
-        body: JSON.stringify({
-          ok: false,
-          error: "coingecko_http_" + res.status,
-          details: responseText.slice(0, 300),
-        }),
-      };
+    for (const step of [
+      { name: "CoinGecko", run: tryCoinGecko },
+      { name: "CoinPaprika", run: tryCoinPaprika },
+      { name: "Binance", run: tryBinance },
+      { name: "OKX", run: tryOkx },
+    ]) {
+      if (complete(prices)) break;
+      sourcesTried.push(step.name);
+      try {
+        prices = await step.run(prices);
+      } catch (stepErr) {
+        console.log(`[get-prices] step ${step.name} threw: ${stepErr.message}`);
+      }
     }
 
-    const data = JSON.parse(responseText);
+    const finalPrices = { USDC: 1, ...prices };
 
-    const prices = {
-      ETH: data.ethereum?.usd,
-      SOL: data.solana?.usd,
-      POL: data["matic-network"]?.usd,
-      AVAX: data["avalanche-2"]?.usd,
-      USDC: 1,
-    };
-
-    console.log("[get-prices] Prices fetched:", prices);
-
-    // Verify all non-USDC prices exist before returning success
-    const missing = ["ETH", "SOL", "POL", "AVAX"].filter((k) => typeof prices[k] !== "number");
+    const missing = REQUIRED.filter((k) => typeof finalPrices[k] !== "number");
     if (missing.length > 0) {
-      console.error("[get-prices] Missing prices for:", missing, "Raw data:", data);
+      console.error("[get-prices] Missing prices after chain:", missing, "tried:", sourcesTried.join(","));
       return {
         statusCode: 502,
         headers,
@@ -115,18 +227,25 @@ export const handler = async (event) => {
           ok: false,
           error: "missing_prices",
           missing,
-          raw: data,
+          sourcesTried,
+          partial: finalPrices,
         }),
       };
     }
 
+    console.log("[get-prices] Chain done. Final prices:", finalPrices, "sourcesTried:", sourcesTried);
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ ok: true, prices, fetchedAt: Date.now() }),
+      body: JSON.stringify({
+        ok: true,
+        prices: finalPrices,
+        fetchedAt: Date.now(),
+        sourcesTried,
+      }),
     };
   } catch (err) {
-    console.error("[get-prices] Network/parse error:", err.message, err.stack);
+    console.error("[get-prices] Top-level chain error:", err.message, err.stack);
     return {
       statusCode: 502,
       headers,
