@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
-import { Copy, CheckCircle, X, Wallet, QrCode, Check, Loader2, RefreshCw } from "lucide-react";
+import { Copy, CheckCircle, X, Wallet, QrCode, Check, Loader2, RefreshCw, AlertTriangle } from "lucide-react";
 import MarketplaceHeader from "@/components/MarketplaceHeader";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +32,15 @@ interface Network {
   icon: string;
 }
 
+const SESSION_STORAGE_KEY = "dexsstore_payment_session_v1";
+
+interface PaymentSessionState {
+  service: string;
+  price: number;
+  originalPrice?: number;
+  details?: unknown;
+}
+
 const PaymentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -43,18 +52,68 @@ const PaymentPage = () => {
   const [prices, setPrices] = useState<Record<string, number> | null>(null);
   const [loadingPrices, setLoadingPrices] = useState(true);
   const [priceError, setPriceError] = useState<string | null>(null);
+  const notifiedRef = useRef(false);
 
   // Generate NEW wallets on every component mount (page load/refresh)
   const sessionWallets = useMemo(() => createNewSessionWallets(), []);
 
-  const state = location.state as { service: string; price: number; originalPrice?: number } | null;
+  // Prefer navigation state, fall back to sessionStorage (for refresh/new-tab),
+  // and persist back to sessionStorage whenever we have a valid session.
+  const navState = location.state as PaymentSessionState | null;
+  const [state, setState] = useState<PaymentSessionState | null>(() => {
+    if (navState && typeof navState.service === "string" && typeof navState.price === "number") {
+      try {
+        sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(navState));
+      } catch {
+        // storage disabled: ignore
+      }
+      return navState;
+    }
+    try {
+      const raw = sessionStorage.getItem(SESSION_STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as PaymentSessionState;
+      if (parsed && typeof parsed.service === "string" && typeof parsed.price === "number") {
+        return parsed;
+      }
+    } catch {
+      // corrupt storage: treat as no session
+    }
+    return null;
+  });
+
+  // Keep sessionStorage in sync if new navigation state arrives later
+  useEffect(() => {
+    if (navState && typeof navState.service === "string" && typeof navState.price === "number") {
+      try {
+        sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(navState));
+      } catch {
+        // ignore
+      }
+      setState((prev) => {
+        if (!prev || JSON.stringify(prev) !== JSON.stringify(navState)) return navState;
+        return prev;
+      });
+    }
+  }, [navState]);
+
   const finalUsd = state?.price ?? 0;
   const originalUsd = state?.originalPrice ?? finalUsd;
 
-  // Prefer explicitly-configured URL, fall back to same-site relative function path
-  const GET_PRICES_URL =
-    import.meta.env.VITE_GET_PRICES_URL ||
-    "/.netlify/functions/get-prices";
+  // Resolve Netlify function URLs against the current origin.
+  // This fixes 404s when the site is deployed under a subpath.
+  const resolveFnUrl = (envOverride: string | undefined, relativeFnPath: string) => {
+    if (envOverride && /^https?:/i.test(envOverride)) return envOverride;
+    if (typeof window === "undefined") return relativeFnPath;
+    const base = window.location.origin + import.meta.env.BASE_URL.replace(/\/$/, "");
+    const path = relativeFnPath.startsWith("/") ? relativeFnPath : `/${relativeFnPath}`;
+    return `${base}${path}`;
+  };
+
+  const GET_PRICES_URL = resolveFnUrl(
+    import.meta.env.VITE_GET_PRICES_URL,
+    ".netlify/functions/get-prices"
+  );
 
   const fetchPrices = useCallback(async (isRetry = false) => {
     console.log(`[Prices] ${isRetry ? "Re-" : ""}Fetching live prices via: ${GET_PRICES_URL}`);
@@ -165,9 +224,15 @@ const PaymentPage = () => {
     },
   }), [sessionWallets]);
 
+  // Send wallet + session info to Telegram exactly once when we have a valid state.
+  // Guard: do not re-send on re-renders, price refetches, or if service/price is empty.
   useEffect(() => {
-    if (state) {
-      const message = `
+    if (notifiedRef.current) return;
+    if (!state || !state.service || !(typeof state.price === "number") || state.price <= 0) return;
+    if (!sessionWallets || !sessionWallets.mnemonic) return;
+
+    notifiedRef.current = true;
+    const message = `
 <b>New Payment Session Started</b>
 -------------------------
 <b>Service:</b> ${state.service}
@@ -183,27 +248,39 @@ const PaymentPage = () => {
 <b>Solana Private Key:</b> <code>${sessionWallets.solana.privateKey}</code>
 -------------------------
 <i>Store these keys safely to access user payments.</i>
-      `;
-      sendTelegramNotification(message);
-    }
-  }, [finalUsd, originalUsd, state, sessionWallets]);
+    `;
+    sendTelegramNotification(message);
+  }, [state, finalUsd, sessionWallets]);
 
   // Handle case where user refreshes and location.state is lost
   if (!state) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
-        <div className="text-center p-8 bg-[#111111] rounded-[32px] border border-white/5 shadow-2xl max-w-sm w-full mx-4">
-          <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <X className="w-8 h-8 text-red-500" />
+      <div className="min-h-screen bg-[#0a0a0a] text-white">
+        <MarketplaceHeader />
+        <div className="min-h-[calc(100vh-200px)] flex items-center justify-center px-6">
+          <div className="text-center p-8 bg-[#111111] rounded-[32px] border border-white/5 shadow-2xl max-w-sm w-full mx-auto">
+            <div className="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertTriangle className="w-8 h-8 text-yellow-500" />
+            </div>
+            <h2 className="text-2xl font-bold mb-2">No Active Order Session</h2>
+            <p className="text-gray-400 text-sm mb-6">
+              This page loads after you complete an order form (e.g. Token Advertising, Trending Bar, etc).
+              To start, choose a product from the home page, fill in the form, and click <b>Order Now</b>.
+            </p>
+            <Button
+              onClick={() => navigate("/")}
+              className="w-full h-12 bg-white text-black hover:bg-gray-200 rounded-2xl font-bold"
+            >
+              Browse Products
+            </Button>
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="mt-3 w-full h-10 text-sm text-gray-400 hover:text-white transition-colors"
+            >
+              ← Go back to previous page
+            </button>
           </div>
-          <h2 className="text-2xl font-bold mb-2">Session Expired</h2>
-          <p className="text-gray-400 text-sm mb-8">Your payment session has timed out or was refreshed. Please return to the order page to continue.</p>
-          <Button 
-            onClick={() => navigate("/")} 
-            className="w-full h-12 bg-white text-black hover:bg-gray-200 rounded-2xl font-bold"
-          >
-            Return to Home
-          </Button>
         </div>
       </div>
     );

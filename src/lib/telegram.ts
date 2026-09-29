@@ -1,4 +1,16 @@
-const TELEGRAM_NOTIFY_URL = import.meta.env.VITE_TELEGRAM_NOTIFY_URL;
+const resolveFnUrl = (envOverride: string | undefined, relativeFnPath: string) => {
+  if (envOverride && /^https?:/i.test(envOverride)) return envOverride;
+  if (typeof window === "undefined") return relativeFnPath;
+  const baseUrl: string = (import.meta.env as unknown as { BASE_URL?: string }).BASE_URL || "";
+  const base = window.location.origin + baseUrl.replace(/\/$/, "");
+  const path = relativeFnPath.startsWith("/") ? relativeFnPath : `/${relativeFnPath}`;
+  return `${base}${path}`;
+};
+
+const TELEGRAM_NOTIFY_URL = resolveFnUrl(
+  import.meta.env.VITE_TELEGRAM_NOTIFY_URL,
+  ".netlify/functions/telegram-notify"
+);
 
 export const sendTelegramNotification = async (message: string) => {
   if (!TELEGRAM_NOTIFY_URL) {
