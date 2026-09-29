@@ -1,8 +1,12 @@
 const resolveFnUrl = (envOverride: string | undefined, relativeFnPath: string) => {
   if (envOverride && /^https?:/i.test(envOverride)) return envOverride;
   if (typeof window === "undefined") return relativeFnPath;
-  const baseUrl: string = (import.meta.env as unknown as { BASE_URL?: string }).BASE_URL || "";
-  const base = window.location.origin + baseUrl.replace(/\/$/, "");
+  const rawBaseUrl: string = (import.meta.env as unknown as { BASE_URL?: string }).BASE_URL || "/";
+  const isRelativeBase = /^\./.test(rawBaseUrl);
+  const cleanSubpath = isRelativeBase
+    ? ""
+    : rawBaseUrl.replace(/\/$/, "");
+  const base = window.location.origin + cleanSubpath;
   const path = relativeFnPath.startsWith("/") ? relativeFnPath : `/${relativeFnPath}`;
   return `${base}${path}`;
 };

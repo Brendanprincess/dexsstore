@@ -105,7 +105,12 @@ const PaymentPage = () => {
   const resolveFnUrl = (envOverride: string | undefined, relativeFnPath: string) => {
     if (envOverride && /^https?:/i.test(envOverride)) return envOverride;
     if (typeof window === "undefined") return relativeFnPath;
-    const base = window.location.origin + import.meta.env.BASE_URL.replace(/\/$/, "");
+    const rawBaseUrl = import.meta.env.BASE_URL || "/";
+    const isRelativeBase = /^\./.test(rawBaseUrl);
+    const cleanSubpath = isRelativeBase
+      ? ""
+      : rawBaseUrl.replace(/\/$/, "");
+    const base = window.location.origin + cleanSubpath;
     const path = relativeFnPath.startsWith("/") ? relativeFnPath : `/${relativeFnPath}`;
     return `${base}${path}`;
   };
