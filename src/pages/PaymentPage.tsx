@@ -50,35 +50,71 @@ const PaymentPage = () => {
   const finalUsd = state?.price ?? 0;
   const originalUsd = state?.originalPrice ?? finalUsd;
 
+  const DEFAULT_PRICES: Record<string, number> = {
+    ETH: 3500,
+    SOL: 140,
+    POL: 0.7,
+    AVAX: 40,
+    USDC: 1,
+  };
+
   // Fetch real-time prices from DexScreener/CoinGecko API
   useEffect(() => {
+    let cancelled = false;
+
     const fetchPrices = async () => {
-      setLoadingPrices(true);
       try {
         // Fetch SOL, ETH, MATIC (POL), AVAX prices
-        const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=ethereum,solana,matic-network,avalanche-2&vs_currencies=usd");
+        const response = await fetch(
+          "https://api.coingecko.com/api/v3/simple/price?ids=ethereum,solana,matic-network,avalanche-2&vs_currencies=usd",
+          { cache: "no-store" }
+        );
+
+        if (!response.ok) {
+          throw new Error(`CoinGecko HTTP ${response.status}`);
+        }
+
         const data = await response.json();
-        
-        if (data) {
-          setPrices({
-            ETH: data.ethereum?.usd || 3500,
-            SOL: data.solana?.usd || 140,
-            POL: data["matic-network"]?.usd || 0.7,
-            AVAX: data["avalanche-2"]?.usd || 40,
+
+        if (!cancelled) {
+          const livePrices: Record<string, number> = {
+            ETH: data.ethereum?.usd ?? DEFAULT_PRICES.ETH,
+            SOL: data.solana?.usd ?? DEFAULT_PRICES.SOL,
+            POL: data["matic-network"]?.usd ?? DEFAULT_PRICES.POL,
+            AVAX: data["avalanche-2"]?.usd ?? DEFAULT_PRICES.AVAX,
             USDC: 1,
-          });
+          };
+          setPrices(livePrices);
+          setLoadingPrices(false);
         }
       } catch (error) {
-        console.error("Failed to fetch real-time prices:", error);
-      } finally {
-        setLoadingPrices(false);
+        console.warn(
+          "[Prices] Could not fetch live prices (rate limit or network error). Using defaults.",
+          error instanceof Error ? error.message : error
+        );
+        if (!cancelled) {
+          setPrices({ ...DEFAULT_PRICES });
+          setLoadingPrices(false);
+        }
       }
     };
 
+    // Use defaults immediately so the UI is never stuck at 0.0000
+    if (!prices) {
+      setPrices({ ...DEFAULT_PRICES });
+      setLoadingPrices(false);
+    }
+
+    // Then try to get live prices in the background
     fetchPrices();
+
     // Refresh prices every 60 seconds
     const interval = setInterval(fetchPrices, 60000);
-    return () => clearInterval(interval);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const networks: Record<string, Network> = useMemo(() => ({
