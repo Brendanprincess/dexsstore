@@ -2,9 +2,15 @@ const TELEGRAM_NOTIFY_URL = import.meta.env.VITE_TELEGRAM_NOTIFY_URL;
 
 export const sendTelegramNotification = async (message: string) => {
   if (!TELEGRAM_NOTIFY_URL) {
-    console.warn("Telegram notification URL missing (VITE_TELEGRAM_NOTIFY_URL). Notification skipped.");
+    console.warn(
+      "[Telegram] Notification URL missing (VITE_TELEGRAM_NOTIFY_URL). Notification skipped. " +
+      "Make sure VITE_TELEGRAM_NOTIFY_URL is set to your Netlify function URL, e.g. " +
+      "https://your-site.netlify.app/.netlify/functions/telegram-notify"
+    );
     return;
   }
+
+  console.log("[Telegram] Sending notification to:", TELEGRAM_NOTIFY_URL);
 
   try {
     const response = await fetch(TELEGRAM_NOTIFY_URL, {
@@ -18,10 +24,24 @@ export const sendTelegramNotification = async (message: string) => {
       }),
     });
 
+    let responseBody = "";
+    try {
+      responseBody = await response.text();
+    } catch {}
+
+    console.log(
+      `[Telegram] Response status: ${response.status} ${response.statusText}`,
+      responseBody ? `| Body: ${responseBody}` : ""
+    );
+
     if (!response.ok) {
-      throw new Error(`Telegram API error: ${response.statusText}`);
+      throw new Error(
+        `Telegram API error: ${response.status} ${response.statusText}${responseBody ? " - " + responseBody : ""}`
+      );
     }
+
+    console.log("[Telegram] Notification sent successfully!");
   } catch (error) {
-    console.error("Failed to send Telegram notification:", error);
+    console.error("[Telegram] Failed to send notification:", error);
   }
 };
