@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
-import { Copy, CheckCircle, X, Wallet, QrCode, Check, Loader2 } from "lucide-react";
+import { Copy, CheckCircle, X, Wallet, QrCode, Check, Loader2, RefreshCw } from "lucide-react";
 import MarketplaceHeader from "@/components/MarketplaceHeader";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,80 +42,81 @@ const PaymentPage = () => {
   const [hasPaid, setHasPaid] = useState(false);
   const [prices, setPrices] = useState<Record<string, number> | null>(null);
   const [loadingPrices, setLoadingPrices] = useState(true);
-  
+  const [priceError, setPriceError] = useState<string | null>(null);
+
   // Generate NEW wallets on every component mount (page load/refresh)
   const sessionWallets = useMemo(() => createNewSessionWallets(), []);
-  
+
   const state = location.state as { service: string; price: number; originalPrice?: number } | null;
   const finalUsd = state?.price ?? 0;
   const originalUsd = state?.originalPrice ?? finalUsd;
 
-  const DEFAULT_PRICES: Record<string, number> = {
-    ETH: 3500,
-    SOL: 140,
-    POL: 0.7,
-    AVAX: 40,
-    USDC: 1,
-  };
+  // Prefer explicitly-configured URL, fall back to same-site relative function path
+  const GET_PRICES_URL =
+    import.meta.env.VITE_GET_PRICES_URL ||
+    "/.netlify/functions/get-prices";
 
-  // Fetch real-time prices from DexScreener/CoinGecko API
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchPrices = async () => {
+  const fetchPrices = useCallback(async (isRetry = false) => {
+    console.log(`[Prices] ${isRetry ? "Re-" : ""}Fetching live prices via: ${GET_PRICES_URL}`);
+    setLoadingPrices(true);
+    setPriceError(null);
+    try {
+      const res = await fetch(GET_PRICES_URL, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+      });
+      const raw = await res.text();
+      let data: unknown = {};
       try {
-        // Fetch SOL, ETH, MATIC (POL), AVAX prices
-        const response = await fetch(
-          "https://api.coingecko.com/api/v3/simple/price?ids=ethereum,solana,matic-network,avalanche-2&vs_currencies=usd",
-          { cache: "no-store" }
-        );
-
-        if (!response.ok) {
-          throw new Error(`CoinGecko HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (!cancelled) {
-          const livePrices: Record<string, number> = {
-            ETH: data.ethereum?.usd ?? DEFAULT_PRICES.ETH,
-            SOL: data.solana?.usd ?? DEFAULT_PRICES.SOL,
-            POL: data["matic-network"]?.usd ?? DEFAULT_PRICES.POL,
-            AVAX: data["avalanche-2"]?.usd ?? DEFAULT_PRICES.AVAX,
-            USDC: 1,
-          };
-          setPrices(livePrices);
-          setLoadingPrices(false);
-        }
-      } catch (error) {
-        console.warn(
-          "[Prices] Could not fetch live prices (rate limit or network error). Using defaults.",
-          error instanceof Error ? error.message : error
-        );
-        if (!cancelled) {
-          setPrices({ ...DEFAULT_PRICES });
-          setLoadingPrices(false);
-        }
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        // non-JSON body treated as error
       }
-    };
-
-    // Use defaults immediately so the UI is never stuck at 0.0000
-    if (!prices) {
-      setPrices({ ...DEFAULT_PRICES });
+      const record =
+        data && typeof data === "object" ? (data as Record<string, unknown>) : null;
+      const okFlag = record && typeof record.ok === "boolean" ? record.ok : false;
+      const pricesData = record && record.prices && typeof record.prices === "object"
+        ? (record.prices as Record<string, number>)
+        : null;
+      if (!res.ok || !okFlag || !pricesData) {
+        const errorField = record && typeof record.error === "string" ? record.error : null;
+        const detailsField =
+          record && typeof record.details === "string" ? record.details : null;
+        const message =
+          errorField ||
+          detailsField ||
+          (res.ok ? "invalid_response" : `HTTP ${res.status}`);
+        throw new Error(message);
+      }
+      console.log("[Prices] Live prices fetched:", pricesData);
+      setPrices({ USDC: 1, ...pricesData });
+      setPriceError(null);
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "message" in err && typeof (err as { message?: unknown }).message === "string"
+          ? (err as { message: string }).message
+          : String(err);
+      console.error("[Prices] Failed to fetch live prices:", msg);
+      setPriceError(msg);
+      setPrices(null);
+    } finally {
       setLoadingPrices(false);
     }
+  }, [GET_PRICES_URL]);
 
-    // Then try to get live prices in the background
-    fetchPrices();
-
-    // Refresh prices every 60 seconds
-    const interval = setInterval(fetchPrices, 60000);
+  // Fetch live prices on mount and refresh every 60s
+  useEffect(() => {
+    let cancelled = false;
+    fetchPrices(false);
+    const interval = setInterval(() => {
+      if (!cancelled) fetchPrices(false);
+    }, 60000);
     return () => {
       cancelled = true;
       clearInterval(interval);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchPrices]);
 
   const networks: Record<string, Network> = useMemo(() => ({
     ethereum: {
@@ -210,7 +211,14 @@ const PaymentPage = () => {
 
   const network = networks[selectedNetwork];
   const token = network.tokens.find((t) => t.symbol === selectedToken) || network.tokens[0];
-  const tokenAmount = !prices ? "0.0000" : (finalUsd / (prices[token.symbol] || 1)).toFixed(4);
+  const tokenUnitPrice = prices ? prices[token.symbol] : null;
+  const tokenAmount =
+    tokenUnitPrice && tokenUnitPrice > 0
+      ? (finalUsd / tokenUnitPrice).toFixed(4)
+      : loadingPrices
+      ? "…"
+      : "—";
+  const pricesReady = tokenUnitPrice && tokenUnitPrice > 0 ? true : false;
 
   const copyAddress = () => {
     navigator.clipboard.writeText(network.wallet);
@@ -266,7 +274,7 @@ const PaymentPage = () => {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">
             <Loader2 className="w-10 h-10 animate-spin text-primary" />
-            <p className="text-sm font-medium">Fetching real-time prices...</p>
+            <p className="text-sm font-medium">Fetching live prices from market data...</p>
           </div>
         </div>
       )}
@@ -288,6 +296,32 @@ const PaymentPage = () => {
             ) : null}
             <p className="text-gray-400 text-sm">Pay for {state.service}</p>
           </div>
+
+          {priceError && !loadingPrices ? (
+            <div className="mb-6 border border-red-500/30 bg-red-500/5 rounded-2xl p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-red-400">
+                    Could not load live market prices
+                  </p>
+                  <p className="mt-1 text-xs text-red-300/80 break-words">
+                    Error: {priceError}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => fetchPrices(true)}
+                  disabled={loadingPrices}
+                  className="shrink-0 h-9 rounded-xl"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-1 ${loadingPrices ? "animate-spin" : ""}`} />
+                  Retry
+                </Button>
+              </div>
+            </div>
+          ) : null}
 
           <div className="space-y-6">
             <div className="space-y-2">
@@ -353,22 +387,31 @@ const PaymentPage = () => {
                 <Button 
                   variant="outline"
                   onClick={handleShowQR}
-                  className="h-14 bg-transparent border-white/10 hover:bg-white/5 rounded-2xl font-semibold text-base flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                  disabled={!pricesReady}
+                  className="h-14 bg-transparent border-white/10 hover:bg-white/5 rounded-2xl font-semibold text-base flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  <QrCode className="w-5 h-5" />
+                  {loadingPrices ? <Loader2 className="w-5 h-5 animate-spin" /> : <QrCode className="w-5 h-5" />}
                   QR Code
                 </Button>
                 
                 <Button 
-                  disabled={hasPaid}
+                  disabled={hasPaid || !pricesReady}
                   onClick={handleIPaid}
-                  className={`h-14 rounded-2xl font-bold text-base transition-all active:scale-[0.98] ${
+                  className={`h-14 rounded-2xl font-bold text-base transition-all active:scale-[0.98] disabled:cursor-not-allowed ${
                     hasPaid 
                       ? "bg-green-500/20 text-green-500 border border-green-500/50" 
-                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                      : pricesReady
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                      : "bg-primary/30 text-primary-foreground/70"
                   }`}
                 >
-                  {hasPaid ? <Check className="w-5 h-5" /> : "I Paid"}
+                  {hasPaid ? (
+                    <Check className="w-5 h-5" />
+                  ) : loadingPrices ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    "I Paid"
+                  )}
                 </Button>
               </div>
             </div>
