@@ -27,7 +27,9 @@ export const sendTelegramNotification = async (message: string) => {
     let responseBody = "";
     try {
       responseBody = await response.text();
-    } catch {}
+    } catch {
+      // Intentionally ignored: response body read failure is non-critical
+    }
 
     console.log(
       `[Telegram] Response status: ${response.status} ${response.statusText}`,
