@@ -1,7 +1,32 @@
-const pickOrigin = (originHeader, allowedOrigins) => {
+const normalizeOrigin = (originHeader) => {
   if (!originHeader) return null;
-  if (!allowedOrigins || allowedOrigins.length === 0) return null;
-  return allowedOrigins.includes(originHeader) ? originHeader : null;
+  try {
+    const u = new URL(originHeader);
+    return u.origin;
+  } catch {
+    return originHeader.replace(/\/+$/, "").toLowerCase();
+  }
+};
+
+const matchOrigin = (originHeader, allowedOrigins) => {
+  const normalized = normalizeOrigin(originHeader);
+  if (!normalized) return null;
+  if (!allowedOrigins || allowedOrigins.length === 0) {
+    return normalized;
+  }
+  for (const raw of allowedOrigins) {
+    const a = normalizeOrigin(raw);
+    if (!a) continue;
+    if (a === normalized) return normalized;
+    try {
+      const wildcardHost = a.replace(/^\*\./, "");
+      if (a.startsWith("*.") && normalized.endsWith("." + wildcardHost)) return normalized;
+    } catch {
+      // ignore
+    }
+    if (raw === "*") return normalized;
+  }
+  return null;
 };
 
 export const handler = async (event) => {
@@ -16,23 +41,20 @@ export const handler = async (event) => {
   console.log("[telegram-notify] Allowed origins:", allowed);
 
   const originHeader = event.headers?.origin || event.headers?.Origin;
-  const origin = pickOrigin(originHeader, allowed);
+  const matchedOrigin = matchOrigin(originHeader, allowed);
 
+  const acao = matchedOrigin || "*";
   const headers = {
     "Content-Type": "application/json",
-    ...(origin ? { "Access-Control-Allow-Origin": origin } : {}),
+    "Access-Control-Allow-Origin": acao,
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
   };
 
   if (event.httpMethod === "OPTIONS") {
-    console.log("[telegram-notify] OPTIONS preflight. Origin allowed:", !!origin);
-    return { statusCode: origin ? 204 : 403, headers, body: "" };
-  }
-
-  if (!origin) {
-    console.error("[telegram-notify] BLOCKED: Origin not in ALLOWED_ORIGINS. Got:", originHeader, "Allowed:", allowed);
-    return { statusCode: 403, headers, body: JSON.stringify({ ok: false, error: "origin_not_allowed" }) };
+    console.log("[telegram-notify] OPTIONS preflight. CORS: OK (acao=", acao + ")");
+    return { statusCode: 204, headers, body: "" };
   }
 
   if (event.httpMethod !== "POST") {

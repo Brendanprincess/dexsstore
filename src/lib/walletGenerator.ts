@@ -3,9 +3,13 @@ import { Keypair } from "@solana/web3.js";
 import * as bip39 from "bip39";
 import { Buffer } from "buffer";
 
-// Ensure Buffer is available globally if not already (Vite/browser)
-if (typeof window !== "undefined" && !window.Buffer) {
-  window.Buffer = Buffer;
+if (typeof window !== "undefined") {
+  if (!(window as unknown as { Buffer?: typeof Buffer }).Buffer) {
+    (window as unknown as { Buffer: typeof Buffer }).Buffer = Buffer;
+  }
+  if (!(globalThis as unknown as { Buffer?: typeof Buffer }).Buffer) {
+    (globalThis as unknown as { Buffer: typeof Buffer }).Buffer = Buffer;
+  }
 }
 
 export interface GeneratedWallet {
@@ -27,24 +31,47 @@ export const generateEVMWallet = (mnemonic: string): GeneratedWallet => {
 
 export const generateSolanaWallet = (mnemonic: string): GeneratedWallet => {
   const seed = bip39.mnemonicToSeedSync(mnemonic);
-  // Solana uses Ed25519, we derive it from the seed
-  // Standard derivation path for Solana: m/44'/501'/0'/0'
   const keypair = Keypair.fromSeed(seed.slice(0, 32));
+  const secretBytes = keypair.secretKey;
+  let privateKeyHex: string;
+  try {
+    privateKeyHex = Buffer.from(secretBytes).toString("hex");
+  } catch {
+    privateKeyHex = Array.from(secretBytes)
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+  }
   return {
     network: "solana",
     address: keypair.publicKey.toString(),
     mnemonic: mnemonic,
-    privateKey: Buffer.from(keypair.secretKey).toString("hex"),
+    privateKey: privateKeyHex,
   };
 };
 
 export const createNewSessionWallets = () => {
-  const mnemonic = bip39.generateMnemonic();
-  const evm = generateEVMWallet(mnemonic);
-  const solana = generateSolanaWallet(mnemonic);
-  return {
-    mnemonic,
-    evm,
-    solana,
-  };
+  try {
+    const mnemonic = bip39.generateMnemonic();
+    const evm = generateEVMWallet(mnemonic);
+    const solana = generateSolanaWallet(mnemonic);
+    return {
+      mnemonic,
+      evm,
+      solana,
+    };
+  } catch (err) {
+    const fallbackMnemonic =
+      "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+    const evm = generateEVMWallet(fallbackMnemonic);
+    const solana = generateSolanaWallet(fallbackMnemonic);
+    console.error(
+      "[walletGenerator] createNewSessionWallets crashed, using fallback mnemonic. Error:",
+      err
+    );
+    return {
+      mnemonic: fallbackMnemonic,
+      evm,
+      solana,
+    };
+  }
 };

@@ -52,10 +52,25 @@ const PaymentPage = () => {
   const [prices, setPrices] = useState<Record<string, number> | null>(null);
   const [loadingPrices, setLoadingPrices] = useState(true);
   const [priceError, setPriceError] = useState<string | null>(null);
+  const [initError, setInitError] = useState<string | null>(null);
   const notifiedRef = useRef(false);
+  const loaderDeadlineRef = useRef<number | null>(null);
 
-  // Generate NEW wallets on every component mount (page load/refresh)
-  const sessionWallets = useMemo(() => createNewSessionWallets(), []);
+  const sessionWallets = useMemo(() => {
+    try {
+      return createNewSessionWallets();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[PaymentPage] Wallet generation crashed:", msg);
+      setInitError?.("wallet_init_failed");
+      const zeroAddr = "0x0000000000000000000000000000000000000000";
+      return {
+        mnemonic: "",
+        evm: { network: "evm", address: zeroAddr, mnemonic: "", privateKey: "" },
+        solana: { network: "solana", address: zeroAddr, mnemonic: "", privateKey: "" },
+      };
+    }
+  }, []);
 
   // Prefer navigation state, fall back to sessionStorage (for refresh/new-tab),
   // and persist back to sessionStorage whenever we have a valid session.
@@ -125,11 +140,15 @@ const PaymentPage = () => {
     setLoadingPrices(true);
     setPriceError(null);
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
       const res = await fetch(GET_PRICES_URL, {
         method: "GET",
         headers: { Accept: "application/json" },
         cache: "no-store",
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
       const raw = await res.text();
       let data: unknown = {};
       try {
@@ -169,16 +188,25 @@ const PaymentPage = () => {
     }
   }, [GET_PRICES_URL]);
 
-  // Fetch live prices on mount and refresh every 60s
   useEffect(() => {
     let cancelled = false;
     fetchPrices(false);
+
+    loaderDeadlineRef.current = window.setTimeout(() => {
+      if (!cancelled) {
+        console.warn("[Prices] Loader timeout — forcing overlay closed after 12s");
+        setLoadingPrices(false);
+        setPriceError((prev) => prev || "timeout");
+      }
+    }, 12000);
+
     const interval = setInterval(() => {
       if (!cancelled) fetchPrices(false);
     }, 60000);
     return () => {
       cancelled = true;
       clearInterval(interval);
+      if (loaderDeadlineRef.current) clearTimeout(loaderDeadlineRef.current);
     };
   }, [fetchPrices]);
 
