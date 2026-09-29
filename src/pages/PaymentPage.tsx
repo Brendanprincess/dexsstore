@@ -380,14 +380,6 @@ const PaymentPage = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      {loadingPrices && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <Loader2 className="w-10 h-10 animate-spin text-primary" />
-            <p className="text-sm font-medium">Fetching live prices from market data...</p>
-          </div>
-        </div>
-      )}
       <div className="max-w-md mx-auto px-6 pt-20 pb-12">
         <div className="relative bg-[#111111] rounded-[32px] p-8 border border-white/5 shadow-2xl">
           <button 
@@ -399,12 +391,29 @@ const PaymentPage = () => {
 
           <div className="text-center mb-8 pt-4">
             <h1 className="text-4xl font-bold tracking-tight mb-2">
-              ${finalUsd.toFixed(2)} {selectedToken}
+              ${finalUsd.toFixed(2)} <span className="text-gray-400 font-semibold text-xl">USD</span>
             </h1>
+            <div className="flex items-center justify-center gap-2 mt-1">
+              {loadingPrices ? (
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary/80 bg-primary/10 rounded-full px-3 py-1">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Fetching live market price for {token.symbol}
+                </span>
+              ) : pricesReady ? (
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-400/90 bg-green-500/10 rounded-full px-3 py-1">
+                  ≈ {tokenAmount} {token.symbol}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-yellow-400/90 bg-yellow-500/10 rounded-full px-3 py-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  Price unavailable — use USD amount
+                </span>
+              )}
+            </div>
             {originalUsd > finalUsd ? (
-              <p className="text-green-400 text-sm font-semibold">10% discount applied</p>
+              <p className="text-green-400 text-sm font-semibold mt-3">10% discount applied</p>
             ) : null}
-            <p className="text-gray-400 text-sm">Pay for {state.service}</p>
+            <p className="text-gray-400 text-sm mt-1">Pay for {state.service}</p>
           </div>
 
           {priceError && !loadingPrices ? (
@@ -497,22 +506,21 @@ const PaymentPage = () => {
                 <Button 
                   variant="outline"
                   onClick={handleShowQR}
-                  disabled={!pricesReady}
-                  className="h-14 bg-transparent border-white/10 hover:bg-white/5 rounded-2xl font-semibold text-base flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="h-14 bg-transparent border-white/10 hover:bg-white/5 rounded-2xl font-semibold text-base flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
                 >
                   {loadingPrices ? <Loader2 className="w-5 h-5 animate-spin" /> : <QrCode className="w-5 h-5" />}
-                  QR Code
+                  {loadingPrices ? "Loading…" : "QR & Address"}
                 </Button>
                 
                 <Button 
-                  disabled={hasPaid || !pricesReady}
+                  disabled={hasPaid || loadingPrices}
                   onClick={handleIPaid}
                   className={`h-14 rounded-2xl font-bold text-base transition-all active:scale-[0.98] disabled:cursor-not-allowed ${
                     hasPaid 
                       ? "bg-green-500/20 text-green-500 border border-green-500/50" 
                       : pricesReady
                       ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                      : "bg-primary/30 text-primary-foreground/70"
+                      : "bg-primary/30 text-primary-foreground/70 hover:bg-primary/40"
                   }`}
                 >
                   {hasPaid ? (
@@ -523,6 +531,49 @@ const PaymentPage = () => {
                     "I Paid"
                   )}
                 </Button>
+              </div>
+            </div>
+
+            <div className="mt-6 bg-[#1a1a1a] rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Destination Wallet</p>
+                <div className="flex items-center gap-1.5">
+                  <img src={network.icon} className="w-4 h-4 rounded-full" alt="" />
+                  <span className="text-[10px] font-semibold text-gray-400">{network.name}</span>
+                </div>
+              </div>
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-xs font-mono text-gray-300 break-all select-all leading-relaxed">
+                  {network.wallet}
+                </p>
+                <button
+                  type="button"
+                  onClick={copyAddress}
+                  className="shrink-0 mt-0.5 p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                  title="Copy wallet address"
+                >
+                  {copied ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                </button>
+              </div>
+              <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                <div className="text-left">
+                  <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Send exactly</p>
+                  {pricesReady ? (
+                    <p className="text-sm font-bold text-foreground">{tokenAmount} {token.symbol}</p>
+                  ) : loadingPrices ? (
+                    <p className="text-sm font-medium text-gray-400 flex items-center gap-1.5">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Calculating…
+                    </p>
+                  ) : (
+                    <p className="text-sm font-medium text-yellow-400">
+                      ${finalUsd.toFixed(2)} USD worth
+                    </p>
+                  )}
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">USD Total</p>
+                  <p className="text-sm font-bold text-green-400">${finalUsd.toFixed(2)}</p>
+                </div>
               </div>
             </div>
           </div>
